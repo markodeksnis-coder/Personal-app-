@@ -4,13 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Performance</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: #030712;
-      background-image: radial-gradient(ellipse 90% 45% at 50% 0%, rgba(37,99,235,.15) 0%, transparent 70%);
+      background: #0d1117;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
+      color: #e6edf3;
     }
+    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+    .tab-btn { transition: all 0.15s; }
+    .tab-btn:hover { color: #8b949e; }
+    .gym-btn { transition: all 0.15s; }
+    .gym-btn:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -23,321 +34,449 @@ const html = htm.bind(React.createElement);
 
 // ── Storage ──────────────────────────────────────────────
 const KEY = 'perf-v1';
-function ds(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
+const ds = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const today = () => ds(new Date());
-const loadLogs  = () => { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch { return []; } };
-const saveLogs  = logs => localStorage.setItem(KEY, JSON.stringify(logs.slice(-90)));
-const getToday  = logs => logs.find(l=>l.date===today()) || {date:today(),gym:null,calories:null,protein:null};
-const upsert    = (logs, log) => {
-  const idx=logs.findIndex(l=>l.date===log.date), next=[...logs];
-  idx>=0 ? next[idx]=log : next.push(log);
-  return next.sort((a,b)=>a.date.localeCompare(b.date));
+const loadLogs = () => { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch { return []; } };
+const saveLogs = logs => localStorage.setItem(KEY, JSON.stringify(logs.slice(-90)));
+const getToday = logs => logs.find(l => l.date === today()) || { date: today(), gym: null, calories: null, protein: null };
+const upsert = (logs, log) => {
+  const idx = logs.findIndex(l => l.date === log.date), next = [...logs];
+  idx >= 0 ? next[idx] = log : next.push(log);
+  return next.sort((a, b) => a.date.localeCompare(b.date));
 };
-const last14 = () => Array.from({length:14},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-(13-i)); return ds(d); });
+const last14 = () => Array.from({length:14}, (_, i) => { const d = new Date(); d.setDate(d.getDate()-(13-i)); return ds(d); });
 const weekDays = () => {
-  const d=new Date(), mon=new Date(d);
-  mon.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1));
-  return Array.from({length:7},(_,i)=>{ const dd=new Date(mon); dd.setDate(mon.getDate()+i); return ds(dd); });
+  const d = new Date(), mon = new Date(d);
+  mon.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
+  return Array.from({length:7}, (_, i) => { const dd = new Date(mon); dd.setDate(mon.getDate()+i); return ds(dd); });
 };
 const streak = (logs, fn) => {
-  let s=0; const d=new Date();
-  for(let i=0;i<90;i++){ const l=logs.find(x=>x.date===ds(d)); if(l&&fn(l))s++; else break; d.setDate(d.getDate()-1); }
+  let s = 0; const d = new Date();
+  for (let i = 0; i < 90; i++) { const l = logs.find(x => x.date === ds(d)); if (l && fn(l)) s++; else break; d.setDate(d.getDate()-1); }
   return s;
 };
+const listAvg = nums => { const d = nums.filter(v => v != null); return d.length ? Math.round(d.reduce((a,b)=>a+b)/d.length) : null; };
 
 // ── Scoring ───────────────────────────────────────────────
-const CG=2200, CB=3500, PG=150;
-const calScore = v => v<=CG ? 100 : Math.max(0,Math.round(((CB-v)/(CB-CG))*100));
-const proScore = v => Math.min(100,Math.round((v/PG)*100));
+const CG = 2200, CB = 3500, PG = 150;
+const calScore = v => v <= CG ? 100 : Math.max(0, Math.round(((CB-v)/(CB-CG))*100));
+const proScore = v => Math.min(100, Math.round((v/PG)*100));
 const dayScore = log => {
-  const s=[]; if(log.calories!=null)s.push(calScore(log.calories)); if(log.protein!=null)s.push(proScore(log.protein));
+  const s = [];
+  if (log.calories != null) s.push(calScore(log.calories));
+  if (log.protein != null) s.push(proScore(log.protein));
+  if (log.gym != null) s.push(log.gym ? 100 : 60);
   return s.length ? Math.round(s.reduce((a,b)=>a+b)/s.length) : null;
 };
 
-// ── ScoreRing ─────────────────────────────────────────────
-function ScoreRing({score}) {
-  const [on,setOn] = useState(false);
-  useEffect(()=>{ const t=setTimeout(()=>setOn(true),100); return ()=>clearTimeout(t); },[]);
-  const r=78, circ=2*Math.PI*r, off=on&&score!=null?circ-(score/100)*circ:circ;
+// ── Design tokens ─────────────────────────────────────────
+const C = {
+  bg: '#0d1117', surface: '#161b22', card: '#1c2128', border: '#30363d',
+  border2: '#21262d', text: '#e6edf3', muted: '#8b949e', dim: '#484f58',
+  green: '#3fb950', orange: '#f0883e', blue: '#58a6ff', red: '#f85149', purple: '#bc8cff'
+};
+
+// ── Primitives ────────────────────────────────────────────
+const Dot = ({color='dim'}) => {
+  const c = C[color] || C.dim;
+  return html`<div style=${{width:10,height:10,borderRadius:'50%',background:c,boxShadow:`0 0 6px ${c}88`,flexShrink:0}}></div>`;
+};
+
+const Bar = ({pct, color='blue', h=7}) => {
+  const c = C[color] || C.blue;
   return html`
-    <div style=${{width:200,height:200,position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
-      <svg width="200" height="200" style=${{transform:'rotate(-90deg)'}}>
-        <circle cx="100" cy="100" r=${r} fill="none" stroke="#1f2937" strokeWidth="14"/>
-        ${score!=null && html`
-          <circle cx="100" cy="100" r=${r} fill="none" stroke="#3b82f6" strokeWidth="14"
+    <div style=${{height:h,background:C.border2,borderRadius:h,overflow:'hidden',flex:1}}>
+      <div style=${{height:'100%',width:`${Math.min(100,Math.max(0,pct||0))}%`,background:c,borderRadius:h,
+        transition:'width 0.9s cubic-bezier(0.4,0,0.2,1)',boxShadow:`0 0 8px ${c}55`}}></div>
+    </div>`;
+};
+
+const Badge = ({label, color='dim'}) => {
+  const c = C[color] || C.dim;
+  return html`<span style=${{fontSize:10,fontWeight:700,color:c,background:`${c}18`,border:`1px solid ${c}44`,padding:'3px 8px',borderRadius:20,whiteSpace:'nowrap'}}>${label}</span>`;
+};
+
+function ScoreRing({score}) {
+  const [on, setOn] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setOn(true), 150); return () => clearTimeout(t); }, []);
+  const r = 44, circ = 2 * Math.PI * r;
+  const off = on && score != null ? circ - (score/100)*circ : circ;
+  const col = score == null ? C.dim : score >= 80 ? C.green : score >= 55 ? C.orange : C.red;
+  return html`
+    <div style=${{position:'relative',width:108,height:108,display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
+      <svg width="108" height="108" style=${{transform:'rotate(-90deg)',position:'absolute'}}>
+        <circle cx="54" cy="54" r=${r} fill="none" stroke=${C.border2} strokeWidth="9"/>
+        ${score != null && html`
+          <circle cx="54" cy="54" r=${r} fill="none" stroke=${col} strokeWidth="9"
             strokeLinecap="round"
-            strokeDasharray=${`${circ} ${circ}`}
+            strokeDasharray="${circ} ${circ}"
             strokeDashoffset=${off}
-            style=${{transition:'stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)',filter:'drop-shadow(0 0 10px #3b82f6)'}}
-          />
+            style=${{transition:'stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)',filter:`drop-shadow(0 0 7px ${col})`}}/>
         `}
       </svg>
-      <div style=${{position:'absolute',textAlign:'center'}}>
-        <div style=${{fontSize:42,fontWeight:900,color:'white',lineHeight:1}}>${score!=null?`${score}%`:'—'}</div>
-        <div style=${{fontSize:11,color:'#6b7280',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.1em',marginTop:6}}>
-          ${score!=null?"today's score":'start logging'}
-        </div>
+      <div style=${{textAlign:'center',zIndex:1}}>
+        <div style=${{fontSize:24,fontWeight:900,color:C.text,lineHeight:1}}>${score != null ? `${score}%` : '—'}</div>
+        <div style=${{fontSize:8,color:C.dim,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginTop:3}}>score</div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
-// ── NumInput ──────────────────────────────────────────────
-function NumInput({value,goal,step,min,max,onChange}) {
+function NumInput({value, goal, step, min, max, onChange}) {
   return html`
-    <div className="flex items-center gap-3">
-      <button onClick=${()=>onChange(Math.max(min,(value??goal)-step))}
-        className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 text-gray-300 text-xl font-black hover:bg-gray-700 transition flex items-center justify-center"
-      >−</button>
+    <div style=${{display:'flex',alignItems:'center',gap:10}}>
+      <button class="gym-btn" onClick=${() => onChange(Math.max(min,(value??goal)-step))}
+        style=${{width:34,height:34,borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,color:C.muted,fontSize:20,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>
+        −
+      </button>
       <input type="number" value=${value??''} placeholder="—"
-        onInput=${e=>{ const n=parseFloat(e.target.value); onChange(isNaN(n)?null:Math.min(max,Math.max(min,n))); }}
-        style=${{colorScheme:'dark'}}
-        className="w-28 text-center text-2xl font-black text-white border-b-2 border-gray-700 focus:border-blue-500 outline-none bg-transparent py-1"
-      />
-      <button onClick=${()=>onChange(Math.min(max,(value??goal)+step))}
-        className="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 text-gray-300 text-xl font-black hover:bg-gray-700 transition flex items-center justify-center"
-      >+</button>
-    </div>
-  `;
+        onInput=${e => { const n = parseFloat(e.target.value); onChange(isNaN(n) ? null : Math.min(max,Math.max(min,n))); }}
+        style=${{width:88,textAlign:'center',fontSize:24,fontWeight:800,color:C.text,background:'transparent',border:'none',borderBottom:`2px solid ${C.border}`,outline:'none',padding:'4px 0',colorScheme:'dark'}}/>
+      <button class="gym-btn" onClick=${() => onChange(Math.min(max,(value??goal)+step))}
+        style=${{width:34,height:34,borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,color:C.muted,fontSize:20,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>
+        +
+      </button>
+    </div>`;
 }
 
-// ── TodayView ─────────────────────────────────────────────
+// ── Table Row ─────────────────────────────────────────────
+function MetricRow({icon, label, valueTxt, goalTxt, pct, barColor, dotColor, badge, streak: st, isLast}) {
+  return html`
+    <div style=${{display:'flex',alignItems:'center',gap:0,padding:'13px 18px',borderBottom:isLast?'none':`1px solid ${C.bg}`}}>
+      <div style=${{width:22,flexShrink:0,display:'flex',alignItems:'center'}}><${Dot} color=${dotColor}/></div>
+      <div style=${{display:'flex',alignItems:'center',gap:7,width:110,flexShrink:0}}>
+        <span style=${{fontSize:15}}>${icon}</span>
+        <span style=${{fontSize:13,fontWeight:600,color:C.text}}>${label}</span>
+      </div>
+      <div style=${{width:68,textAlign:'right',fontSize:13,fontWeight:700,color:dotColor==='green'?C.green:C.text,flexShrink:0}}>${valueTxt}</div>
+      <div style=${{width:58,textAlign:'right',fontSize:11,color:C.dim,flexShrink:0}}>${goalTxt}</div>
+      <div style=${{flex:1,display:'flex',alignItems:'center',gap:8,marginLeft:12}}>
+        <${Bar} pct=${pct} color=${barColor}/>
+        <span style=${{fontSize:11,fontWeight:700,color:C.dim,width:32,textAlign:'right',flexShrink:0}}>${pct != null ? `${pct}%` : ''}</span>
+      </div>
+      <div style=${{width:52,textAlign:'right',flexShrink:0}}>
+        ${st > 1 && html`<span style=${{fontSize:10,fontWeight:700,color:C.orange}}>🔥${st}d</span>`}
+      </div>
+    </div>`;
+}
+
+// ── Section header ────────────────────────────────────────
+const SectionHead = ({title}) => html`
+  <div style=${{fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:10,paddingLeft:2}}>${title}</div>`;
+
+// ── Today View ────────────────────────────────────────────
 const fmtDate = s => new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
 
-function TodayView({log,onChange}) {
+function TodayView({log, onChange, logs}) {
   const set = p => onChange({...log,...p});
-  const score=dayScore(log);
-  const calHit=log.calories!=null&&log.calories<=CG;
-  const proHit=log.protein!=null&&log.protein>=PG;
-  const calPct=log.calories!=null?Math.min(100,calScore(log.calories)):0;
-  const proPct=log.protein!=null?Math.min(100,proScore(log.protein)):0;
+  const score = dayScore(log);
+  const calPct = log.calories != null ? calScore(log.calories) : null;
+  const proPct = log.protein != null ? proScore(log.protein) : null;
+  const calHit = log.calories != null && log.calories <= CG;
+  const proHit = log.protein != null && log.protein >= PG;
+  const gymThisWeek = weekDays().filter(d => logs.find(l => l.date === d)?.gym === true).length;
+  const calStr = streak(logs, l => l.calories != null && l.calories <= CG);
+  const proStr = streak(logs, l => l.protein != null && l.protein >= PG);
+  const gymStr = streak(logs, l => l.gym === true);
+
+  const calDot = calPct == null ? 'dim' : calPct >= 80 ? 'green' : calPct >= 50 ? 'orange' : 'red';
+  const proDot = proPct == null ? 'dim' : proPct >= 100 ? 'green' : proPct >= 70 ? 'blue' : 'orange';
+  const gymDot = log.gym === null ? 'dim' : log.gym ? 'green' : 'orange';
+  const gymPct = Math.round((gymThisWeek / 6) * 100);
+  const gymBarColor = gymThisWeek >= 6 ? 'green' : gymThisWeek >= 4 ? 'orange' : 'red';
 
   return html`
-    <div className="space-y-4">
-      <p className="text-center text-xs text-gray-600 uppercase tracking-widest font-semibold">${fmtDate(log.date)}</p>
+    <div style=${{display:'flex',flexDirection:'column',gap:16}}>
 
-      <div className="flex justify-center py-2">
+      <!-- Header card -->
+      <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div>
+          <div style=${{fontSize:12,color:C.dim,fontWeight:500,marginBottom:5}}>${fmtDate(log.date)}</div>
+          <div style=${{fontSize:18,fontWeight:800,color:C.text,marginBottom:10}}>Today's Overview</div>
+          <div style=${{display:'flex',gap:8,flexWrap:'wrap'}}>
+            ${gymThisWeek > 0 && html`<${Badge} label=${`🏋️ ${gymThisWeek}/6 this week`} color=${gymThisWeek>=6?'green':'orange'}/>`}
+            ${gymStr > 1 && html`<${Badge} label=${`🔥 ${gymStr}d gym streak`} color="orange"/>`}
+            ${score != null && html`<${Badge} label=${score>=80?'✓ On track':score>=60?'Almost there':'Needs work'} color=${score>=80?'green':score>=60?'orange':'red'}/>`}
+          </div>
+        </div>
         <${ScoreRing} score=${score}/>
       </div>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🏋️</span>
-            <div>
-              <div className="font-black text-white">Gym Today?</div>
-              <div className="text-xs text-gray-600">Goal: 6 sessions / week</div>
-            </div>
+      <!-- Health table -->
+      <div>
+        <${SectionHead} title="Health Metrics"/>
+        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,overflow:'hidden'}}>
+          <!-- Column headers -->
+          <div style=${{display:'flex',alignItems:'center',gap:0,padding:'9px 18px',borderBottom:`1px solid ${C.border2}`,background:C.bg}}>
+            <div style=${{width:22,flexShrink:0}}></div>
+            <div style=${{width:110,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',flexShrink:0}}>Metric</div>
+            <div style=${{width:68,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Current</div>
+            <div style=${{width:58,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Goal</div>
+            <div style=${{flex:1,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',marginLeft:12,flexShrink:0}}>Progress</div>
+            <div style=${{width:52,flexShrink:0}}></div>
           </div>
-          ${log.gym===true && html`<span className="text-xs font-black text-green-400 bg-green-400/10 border border-green-400/20 px-3 py-1 rounded-full">TRAINED ✓</span>`}
-        </div>
-        <div className="flex gap-3">
-          <button onClick=${()=>set({gym:true})}
-            className=${`flex-1 py-3 rounded-xl font-black text-sm transition ${log.gym===true?'bg-green-500 text-white':'bg-gray-800 text-gray-500 border border-gray-700 hover:bg-gray-700'}`}
-          >I TRAINED 💪</button>
-          <button onClick=${()=>set({gym:false})}
-            className=${`flex-1 py-3 rounded-xl font-black text-sm transition ${log.gym===false?'bg-gray-700 text-gray-200 border border-gray-600':'bg-gray-800 text-gray-600 border border-gray-700 hover:bg-gray-700'}`}
-          >REST DAY</button>
+          <${MetricRow} icon="🔥" label="Calories" valueTxt=${log.calories!=null?log.calories.toLocaleString():'—'}
+            goalTxt="≤ 2,200" pct=${calPct} barColor=${calDot} dotColor=${calDot} streak=${calStr}/>
+          <${MetricRow} icon="🥩" label="Protein" valueTxt=${log.protein!=null?`${log.protein}g`:'—'}
+            goalTxt="≥ 150g" pct=${proPct} barColor=${proDot==='dim'?'dim':proDot} dotColor=${proDot} streak=${proStr}/>
+          <${MetricRow} icon="🏋️" label="Gym" valueTxt=${`${gymThisWeek}/6 wk`}
+            goalTxt="6× / wk" pct=${gymPct} barColor=${gymBarColor} dotColor=${gymDot} streak=${gymStr} isLast=${true}/>
         </div>
       </div>
 
-      <div className=${`bg-gray-900 rounded-2xl p-5 border transition ${calHit?'border-blue-500/40':'border-gray-800'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🔥</span>
-            <div>
-              <div className="font-black text-white">Calories</div>
-              <div className="text-xs text-gray-600">Goal ≤ 2,200 kcal</div>
-            </div>
-          </div>
-          ${calHit
-            ? html`<span className="text-xs font-black text-blue-400 bg-blue-400/10 border border-blue-400/20 px-3 py-1 rounded-full">ON TRACK ✓</span>`
-            : log.calories!=null && html`<span className="text-xs font-black text-orange-400 bg-orange-400/10 border border-orange-400/20 px-3 py-1 rounded-full">+${log.calories-CG} over</span>`
-          }
-        </div>
-        <${NumInput} value=${log.calories} goal=${CG} step=${50} min=${500} max=${5000} onChange=${v=>set({calories:v})}/>
-        ${log.calories!=null && html`
-          <div className="mt-3 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-            <div className=${`h-full rounded-full transition-all duration-500 ${calHit?'bg-blue-500':'bg-orange-500'}`}
-              style=${{width:`${calPct}%`,boxShadow:calHit?'0 0 8px #3b82f6':'0 0 6px #f97316'}}/>
-          </div>
-        `}
-      </div>
+      <!-- Log inputs -->
+      <div>
+        <${SectionHead} title="Log Today"/>
+        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,overflow:'hidden'}}>
 
-      <div className=${`bg-gray-900 rounded-2xl p-5 border transition ${proHit?'border-blue-500/40':'border-gray-800'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🥩</span>
-            <div>
-              <div className="font-black text-white">Protein</div>
-              <div className="text-xs text-gray-600">Goal ≥ 150g</div>
-            </div>
-          </div>
-          ${proHit
-            ? html`<span className="text-xs font-black text-blue-400 bg-blue-400/10 border border-blue-400/20 px-3 py-1 rounded-full">GOAL HIT ✓</span>`
-            : log.protein!=null && html`<span className="text-xs font-black text-blue-400/60 px-3 py-1 rounded-full">${PG-log.protein}g to go</span>`
-          }
-        </div>
-        <${NumInput} value=${log.protein} goal=${PG} step=${5} min=${0} max=${400} onChange=${v=>set({protein:v})}/>
-        ${log.protein!=null && html`
-          <div className="mt-3 h-1.5 bg-gray-800 rounded-full overflow-hidden">
-            <div className=${`h-full rounded-full transition-all duration-500 ${proHit?'bg-blue-500':'bg-blue-400/50'}`}
-              style=${{width:`${proPct}%`,boxShadow:proHit?'0 0 8px #3b82f6':undefined}}/>
-          </div>
-        `}
-      </div>
-    </div>
-  `;
-}
-
-// ── Sparkline ─────────────────────────────────────────────
-const SC={orange:'#f97316',blue:'#3b82f6',green:'#22c55e'};
-function Sparkline({values,goal,direction,color}) {
-  const W=300,H=60,stroke=SC[color]||'#3b82f6';
-  const def=values.filter(v=>v!=null);
-  if(def.length<2) return html`
-    <div className="flex items-center justify-center rounded-xl bg-gray-800/50 border border-gray-800" style=${{height:H}}>
-      <span className="text-xs text-gray-700 font-semibold uppercase tracking-wider">Log a few days to see trend</span>
-    </div>
-  `;
-  const all=[...def,goal], minV=Math.min(...all)*.88, maxV=Math.max(...all)*1.12, rng=maxV-minV||1, n=values.length;
-  const pt=(i,v)=>({x:(i/(n-1))*W,y:H-((v-minV)/rng)*H});
-  const goalY=H-((goal-minV)/rng)*H;
-  let d='',going=false;
-  for(let i=0;i<n;i++){ const v=values[i]; if(v==null){going=false;continue;} const p=pt(i,v); d+=going?` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`:`M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`; going=true; }
-  return html`
-    <svg viewBox=${`0 0 ${W} ${H}`} className="w-full rounded-lg" style=${{height:H}} preserveAspectRatio="none">
-      <line x1="0" y1=${goalY} x2=${W} y2=${goalY} stroke="#374151" strokeWidth="1.5" strokeDasharray="5 4"/>
-      ${d&&html`<path d=${d} fill="none" stroke=${stroke} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style=${{filter:`drop-shadow(0 0 4px ${stroke})`}}/>`}
-      ${values.map((v,i)=>v!=null&&html`<circle key=${i} cx=${pt(i,v).x} cy=${pt(i,v).y} r="4"
-        fill=${direction==='up'?(v>=goal?'#22c55e':stroke):(v<=goal?'#22c55e':stroke)}
-        style=${{filter:`drop-shadow(0 0 3px ${direction==='up'?(v>=goal?'#22c55e':stroke):(v<=goal?'#22c55e':stroke)})`}}
-      />`)}
-    </svg>
-  `;
-}
-
-// ── TrendsView ────────────────────────────────────────────
-const DAYS=['M','T','W','T','F','S','S'];
-const avg = nums => { const d=nums.filter(v=>v!=null); return d.length?Math.round(d.reduce((a,b)=>a+b)/d.length):null; };
-function Stat({label,value}) {
-  return html`
-    <div className="bg-gray-800 rounded-xl px-3 py-2 text-center flex-1">
-      <div className="text-white font-black text-lg leading-none">${value}</div>
-      <div className="text-gray-600 text-xs mt-1 uppercase tracking-wider font-semibold">${label}</div>
-    </div>
-  `;
-}
-function TrendsView({logs}) {
-  const d14=last14(), wd=weekDays(), tod=today();
-  const gym=wd.filter(d=>logs.find(l=>l.date===d)?.gym===true).length;
-  const cal14=d14.map(d=>logs.find(l=>l.date===d)?.calories??null);
-  const pro14=d14.map(d=>logs.find(l=>l.date===d)?.protein??null);
-  const calAvg=avg(cal14), proAvg=avg(pro14);
-  const calStr=streak(logs,l=>l.calories!=null&&l.calories<=CG);
-  const proStr=streak(logs,l=>l.protein!=null&&l.protein>=PG);
-  const gymStr=streak(logs,l=>l.gym===true);
-  const calLg=cal14.filter(v=>v!=null).length, proLg=pro14.filter(v=>v!=null).length;
-  const calHit=cal14.filter(v=>v!=null&&v<=CG).length, proHit=pro14.filter(v=>v!=null&&v>=PG).length;
-  return html`
-    <div className="space-y-4">
-      <p className="text-xs text-gray-600 text-center uppercase tracking-widest font-semibold">Last 14 days</p>
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🏋️</span>
-            <div>
-              <div className="font-black text-white">Gym Sessions</div>
-              <div className="text-xs text-gray-600">Goal: 6× per week</div>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className=${`text-3xl font-black leading-none ${gym>=6?'text-green-400':'text-white'}`}>
-              ${gym}<span className="text-gray-700 text-xl">/6</span>
-            </div>
-            ${gymStr>1&&html`<div className="text-xs text-orange-400 font-black mt-1">🔥 ${gymStr}d streak</div>`}
-          </div>
-        </div>
-        <div className="flex gap-1.5">
-          ${wd.map((d,i)=>{
-            const l=logs.find(x=>x.date===d),went=l?.gym===true,rest=l?.gym===false,isTod=d===tod,fut=d>tod;
-            return html`
-              <div key=${d} className="flex-1 flex flex-col items-center gap-1.5">
-                <span className="text-xs text-gray-600 font-bold">${DAYS[i]}</span>
-                <div className=${`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2 ${
-                  went?'bg-green-500 border-green-500 text-white':
-                  rest?'bg-gray-800 border-gray-700 text-gray-600':
-                  isTod?'border-blue-500 border-dashed bg-blue-500/5 text-blue-500':
-                  fut?'border-gray-800 bg-transparent':'border-gray-800 bg-gray-800/50'
-                }`}>${went?'✓':rest?'–':''}</div>
+          <!-- Calories -->
+          <div style=${{padding:'16px 20px',borderBottom:`1px solid ${C.border2}`}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <div style=${{display:'flex',alignItems:'center',gap:7}}>
+                <span style=${{fontSize:15}}>🔥</span>
+                <span style=${{fontSize:13,fontWeight:700,color:C.text}}>Calories</span>
               </div>
-            `;
+              ${calHit
+                ? html`<${Badge} label="ON TRACK ✓" color="green"/>`
+                : log.calories!=null && html`<${Badge} label=${`+${(log.calories-CG).toLocaleString()} over goal`} color="orange"/>`
+              }
+            </div>
+            <${NumInput} value=${log.calories} goal=${CG} step=${50} min=${500} max=${5000} onChange=${v=>set({calories:v})}/>
+            ${log.calories != null && html`
+              <div style=${{marginTop:12,display:'flex',alignItems:'center',gap:8}}>
+                <${Bar} pct=${calPct} color=${calDot} h=${8}/>
+                <span style=${{fontSize:11,color:C.muted,fontWeight:700,width:34,textAlign:'right'}}>${calPct}%</span>
+              </div>`}
+          </div>
+
+          <!-- Protein -->
+          <div style=${{padding:'16px 20px',borderBottom:`1px solid ${C.border2}`}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <div style=${{display:'flex',alignItems:'center',gap:7}}>
+                <span style=${{fontSize:15}}>🥩</span>
+                <span style=${{fontSize:13,fontWeight:700,color:C.text}}>Protein</span>
+              </div>
+              ${proHit
+                ? html`<${Badge} label="GOAL HIT ✓" color="green"/>`
+                : log.protein!=null && html`<${Badge} label=${`${PG-log.protein}g to go`} color="blue"/>`
+              }
+            </div>
+            <${NumInput} value=${log.protein} goal=${PG} step=${5} min=${0} max=${400} onChange=${v=>set({protein:v})}/>
+            ${log.protein != null && html`
+              <div style=${{marginTop:12,display:'flex',alignItems:'center',gap:8}}>
+                <${Bar} pct=${proPct} color=${proDot==='dim'?'dim':proDot} h=${8}/>
+                <span style=${{fontSize:11,color:C.muted,fontWeight:700,width:34,textAlign:'right'}}>${proPct}%</span>
+              </div>`}
+          </div>
+
+          <!-- Gym -->
+          <div style=${{padding:'16px 20px'}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <div style=${{display:'flex',alignItems:'center',gap:7}}>
+                <span style=${{fontSize:15}}>🏋️</span>
+                <span style=${{fontSize:13,fontWeight:700,color:C.text}}>Gym Session</span>
+              </div>
+              ${log.gym===true && html`<${Badge} label="TRAINED ✓" color="green"/>`}
+              ${log.gym===false && html`<${Badge} label="REST DAY" color="dim"/>`}
+            </div>
+            <div style=${{display:'flex',gap:10}}>
+              <button class="gym-btn" onClick=${() => set({gym:true})}
+                style=${{flex:1,padding:'11px 0',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',
+                  border:`1px solid ${log.gym===true?C.green:C.border}`,
+                  background:log.gym===true?`${C.green}20`:C.card,
+                  color:log.gym===true?C.green:C.muted}}>
+                I TRAINED 💪
+              </button>
+              <button class="gym-btn" onClick=${() => set({gym:false})}
+                style=${{flex:1,padding:'11px 0',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',
+                  border:`1px solid ${log.gym===false?C.dim:C.border}`,
+                  background:log.gym===false?`${C.dim}20`:C.card,
+                  color:log.gym===false?C.muted:C.dim}}>
+                REST DAY
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Trends View ───────────────────────────────────────────
+const DAYS = ['M','T','W','T','F','S','S'];
+
+function TrendsView({logs}) {
+  const d14 = last14(), wd = weekDays(), tod = today();
+  const cal14 = d14.map(d => logs.find(l => l.date===d)?.calories ?? null);
+  const pro14 = d14.map(d => logs.find(l => l.date===d)?.protein ?? null);
+  const calAvg = listAvg(cal14), proAvg = listAvg(pro14);
+  const calStr = streak(logs, l => l.calories!=null && l.calories<=CG);
+  const proStr = streak(logs, l => l.protein!=null && l.protein>=PG);
+  const gymStr = streak(logs, l => l.gym===true);
+  const calLogged = cal14.filter(v=>v!=null).length;
+  const proLogged = pro14.filter(v=>v!=null).length;
+  const calHitDays = cal14.filter(v=>v!=null&&v<=CG).length;
+  const proHitDays = pro14.filter(v=>v!=null&&v>=PG).length;
+  const gymTotal14 = d14.filter(d=>logs.find(l=>l.date===d)?.gym===true).length;
+  const gymThisWeek = wd.filter(d=>logs.find(l=>l.date===d)?.gym===true).length;
+  const calAvgScore = calAvg != null ? calScore(calAvg) : null;
+  const proAvgScore = proAvg != null ? proScore(proAvg) : null;
+
+  return html`
+    <div style=${{display:'flex',flexDirection:'column',gap:16}}>
+
+      <!-- 14-day summary table -->
+      <div>
+        <${SectionHead} title="14-Day Summary"/>
+        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,overflow:'hidden'}}>
+          <div style=${{display:'flex',alignItems:'center',gap:0,padding:'9px 18px',borderBottom:`1px solid ${C.border2}`,background:C.bg}}>
+            <div style=${{width:22,flexShrink:0}}></div>
+            <div style=${{width:110,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',flexShrink:0}}>Metric</div>
+            <div style=${{width:68,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Avg</div>
+            <div style=${{width:58,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Goal</div>
+            <div style=${{flex:1,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',marginLeft:12}}>Hit Rate</div>
+            <div style=${{width:52,flexShrink:0}}></div>
+          </div>
+          <${MetricRow} icon="🔥" label="Calories"
+            valueTxt=${calAvg!=null?calAvg.toLocaleString():'—'}
+            goalTxt="≤ 2,200"
+            pct=${calLogged ? Math.round((calHitDays/calLogged)*100) : null}
+            barColor=${calAvg==null?'dim':calAvg<=CG?'green':'orange'}
+            dotColor=${calAvg==null?'dim':calAvg<=CG?'green':'orange'}
+            streak=${calStr}/>
+          <${MetricRow} icon="🥩" label="Protein"
+            valueTxt=${proAvg!=null?`${proAvg}g`:'—'}
+            goalTxt="≥ 150g"
+            pct=${proLogged ? Math.round((proHitDays/proLogged)*100) : null}
+            barColor=${proAvg==null?'dim':proAvg>=PG?'green':'blue'}
+            dotColor=${proAvg==null?'dim':proAvg>=PG?'green':'blue'}
+            streak=${proStr}/>
+          <${MetricRow} icon="🏋️" label="Gym"
+            valueTxt=${`${gymTotal14}/14d`}
+            goalTxt="6×/wk"
+            pct=${Math.round((gymTotal14/14)*100)}
+            barColor=${gymTotal14>=8?'green':gymTotal14>=5?'orange':'red'}
+            dotColor=${gymTotal14>=8?'green':gymTotal14>=5?'orange':'red'}
+            streak=${gymStr} isLast=${true}/>
+        </div>
+      </div>
+
+      <!-- This week gym grid -->
+      <div>
+        <${SectionHead} title="Gym — This Week"/>
+        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 20px'}}>
+          <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+            <div style=${{display:'flex',alignItems:'center',gap:10}}>
+              <span style=${{fontSize:26,fontWeight:900,color:gymThisWeek>=6?C.green:C.text,lineHeight:1}}>${gymThisWeek}</span>
+              <span style=${{fontSize:13,color:C.dim,fontWeight:600}}>/6 sessions</span>
+            </div>
+            ${gymStr>1 && html`<${Badge} label=${`🔥 ${gymStr}-day streak`} color="orange"/>`}
+          </div>
+          <div style=${{display:'flex',gap:6,marginBottom:12}}>
+            ${wd.map((d,i) => {
+              const l = logs.find(x=>x.date===d);
+              const went = l?.gym===true, rest = l?.gym===false, isTod = d===tod, fut = d>tod;
+              const bg = went ? C.green : rest ? C.border2 : isTod ? `${C.blue}12` : 'transparent';
+              const bdr = went ? C.green : rest ? C.border : isTod ? C.blue : C.border2;
+              const fc = went ? 'white' : rest ? C.dim : isTod ? C.blue : C.border;
+              return html`
+                <div key=${d} style=${{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:5}}>
+                  <span style=${{fontSize:10,color:C.dim,fontWeight:700}}>${DAYS[i]}</span>
+                  <div style=${{width:34,height:34,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',
+                    fontSize:12,fontWeight:800,border:`2px ${isTod?'dashed':'solid'} ${bdr}`,background:bg,color:fc,
+                    boxShadow:went?`0 0 10px ${C.green}44`:undefined}}>
+                    ${went?'✓':rest?'–':''}
+                  </div>
+                </div>`;
+            })}
+          </div>
+          <${Bar} pct=${Math.round((gymThisWeek/6)*100)} color=${gymThisWeek>=6?'green':gymThisWeek>=4?'orange':'red'} h=${8}/>
+        </div>
+      </div>
+
+      <!-- Workload-style daily bars (like screenshot 2) -->
+      <div>
+        <${SectionHead} title="Daily Progress — Last 7 Days"/>
+        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 20px'}}>
+          <!-- Legend -->
+          <div style=${{display:'flex',gap:16,marginBottom:14}}>
+            <div style=${{display:'flex',alignItems:'center',gap:5}}><div style=${{width:10,height:10,borderRadius:2,background:C.orange}}></div><span style=${{fontSize:11,color:C.muted,fontWeight:600}}>Calories</span></div>
+            <div style=${{display:'flex',alignItems:'center',gap:5}}><div style=${{width:10,height:10,borderRadius:2,background:C.blue}}></div><span style=${{fontSize:11,color:C.muted,fontWeight:600}}>Protein</span></div>
+            <div style=${{display:'flex',alignItems:'center',gap:5}}><div style=${{width:10,height:10,borderRadius:2,background:C.green}}></div><span style=${{fontSize:11,color:C.muted,fontWeight:600}}>Goal hit</span></div>
+          </div>
+          ${d14.slice(-7).map(d => {
+            const l = logs.find(x=>x.date===d);
+            const cal = l?.calories??null, pro = l?.protein??null;
+            const label = new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            const isToday = d === tod;
+            if (cal==null && pro==null) return html`
+              <div key=${d} style=${{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                <span style=${{fontSize:11,color:C.dim,fontWeight:500,width:46,flexShrink:0}}>${label}${isToday?' •':''}</span>
+                <span style=${{fontSize:11,color:C.dim,fontStyle:'italic'}}>not logged</span>
+              </div>`;
+            return html`
+              <div key=${d} style=${{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                <span style=${{fontSize:11,color:isToday?C.blue:C.muted,fontWeight:isToday?700:500,width:46,flexShrink:0}}>${label}${isToday?' •':''}</span>
+                <div style=${{flex:1,display:'flex',flexDirection:'column',gap:4}}>
+                  ${cal!=null && html`
+                    <div style=${{display:'flex',alignItems:'center',gap:8}}>
+                      <div style=${{flex:1,height:7,background:C.border2,borderRadius:3,overflow:'hidden'}}>
+                        <div style=${{height:'100%',width:`${Math.min(100,calScore(cal))}%`,
+                          background:cal<=CG?C.green:C.orange,borderRadius:3,transition:'width 0.8s'}}></div>
+                      </div>
+                      <span style=${{fontSize:10,color:C.dim,width:65,textAlign:'right',fontWeight:600}}>${cal.toLocaleString()} kcal</span>
+                    </div>`}
+                  ${pro!=null && html`
+                    <div style=${{display:'flex',alignItems:'center',gap:8}}>
+                      <div style=${{flex:1,height:7,background:C.border2,borderRadius:3,overflow:'hidden'}}>
+                        <div style=${{height:'100%',width:`${Math.min(100,proScore(pro))}%`,
+                          background:pro>=PG?C.green:C.blue,borderRadius:3,transition:'width 0.8s'}}></div>
+                      </div>
+                      <span style=${{fontSize:10,color:C.dim,width:65,textAlign:'right',fontWeight:600}}>${pro}g protein</span>
+                    </div>`}
+                </div>
+              </div>`;
           })}
         </div>
       </div>
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🔥</span>
-            <div><div className="font-black text-white">Calories</div><div className="text-xs text-gray-600">Goal ≤ 2,200 kcal</div></div>
-          </div>
-          ${calStr>1&&html`<span className="text-xs font-black text-orange-400 bg-orange-400/10 border border-orange-400/20 px-3 py-1 rounded-full">🔥 ${calStr}d</span>`}
-        </div>
-        <div className="flex gap-2 mb-4">
-          <${Stat} label="14d avg" value=${calAvg!=null?`${calAvg.toLocaleString()}`:'—'}/>
-          <${Stat} label="goal" value="2,200"/>
-          <${Stat} label="on track" value=${calLg?`${calHit}/${calLg}d`:'—'}/>
-        </div>
-        <${Sparkline} values=${cal14} goal=${CG} direction="down" color="orange"/>
-      </div>
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🥩</span>
-            <div><div className="font-black text-white">Protein</div><div className="text-xs text-gray-600">Goal ≥ 150g</div></div>
-          </div>
-          ${proStr>1&&html`<span className="text-xs font-black text-orange-400 bg-orange-400/10 border border-orange-400/20 px-3 py-1 rounded-full">🔥 ${proStr}d</span>`}
-        </div>
-        <div className="flex gap-2 mb-4">
-          <${Stat} label="14d avg" value=${proAvg!=null?`${proAvg}g`:'—'}/>
-          <${Stat} label="goal" value="150g"/>
-          <${Stat} label="goal hit" value=${proLg?`${proHit}/${proLg}d`:'—'}/>
-        </div>
-        <${Sparkline} values=${pro14} goal=${PG} direction="up" color="blue"/>
-      </div>
-    </div>
-  `;
+    </div>`;
 }
 
 // ── App ───────────────────────────────────────────────────
 function App() {
-  const [logs,setLogs]=useState([]);
-  const [tab,setTab]=useState('today');
-  useEffect(()=>setLogs(loadLogs()),[]);
-  const onChange = updated => { const next=upsert(logs,updated); setLogs(next); saveLogs(next); };
+  const [logs, setLogs] = useState([]);
+  const [tab, setTab] = useState('today');
+  useEffect(() => setLogs(loadLogs()), []);
+  const onChange = updated => { const next = upsert(logs, updated); setLogs(next); saveLogs(next); };
+
   return html`
-    <div className="min-h-screen">
-      <div className="max-w-lg mx-auto px-4 pb-12">
-        <div className="pt-10 pb-5">
-          <h1 className="text-3xl font-black text-white tracking-tight">My Performance</h1>
-          <p className="text-xs text-gray-600 mt-1 uppercase tracking-widest font-semibold">Log · Track · Improve</p>
+    <div style=${{minHeight:'100vh',background:C.bg}}>
+      <div style=${{maxWidth:640,margin:'0 auto',padding:'0 16px 40px'}}>
+
+        <!-- Top nav -->
+        <div style=${{padding:'18px 0 14px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:`1px solid ${C.border2}`,marginBottom:18}}>
+          <div style=${{display:'flex',alignItems:'center',gap:12}}>
+            <div style=${{width:8,height:8,borderRadius:'50%',background:C.green,boxShadow:`0 0 8px ${C.green}`}}></div>
+            <h1 style=${{fontSize:16,fontWeight:800,color:C.text,letterSpacing:'-0.2px'}}>My Performance</h1>
+          </div>
+          <span style=${{fontSize:11,color:C.dim,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.1em'}}>Health · Gym · Nutrition</span>
         </div>
-        <div className="flex gap-1 mb-6 bg-gray-900 border border-gray-800 rounded-2xl p-1">
-          ${['today','trends'].map(t=>html`
-            <button key=${t} onClick=${()=>setTab(t)}
-              className=${`flex-1 py-2.5 rounded-xl text-sm font-black tracking-wide transition-all ${t===tab?'bg-blue-600 text-white':'text-gray-600 hover:text-gray-400'}`}
-            >${t==='today'?'📋 TODAY':'📈 TRENDS'}</button>
-          `)}
+
+        <!-- Tab bar -->
+        <div style=${{display:'flex',gap:3,marginBottom:18,background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:3}}>
+          ${['today','trends'].map(t => html`
+            <button key=${t} class="tab-btn" onClick=${() => setTab(t)}
+              style=${{flex:1,padding:'8px 0',borderRadius:6,fontSize:11,fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',cursor:'pointer',border:'none',
+                background:t===tab?C.card:'transparent',
+                color:t===tab?C.text:C.dim,
+                boxShadow:t===tab?'0 1px 4px rgba(0,0,0,0.5)':undefined}}>
+              ${t==='today'?'📋  Today':'📈  Trends'}
+            </button>`)}
         </div>
+
         ${tab==='today'
-          ? html`<${TodayView} log=${getToday(logs)} onChange=${onChange}/>`
-          : html`<${TrendsView} logs=${logs}/>`
-        }
+          ? html`<${TodayView} log=${getToday(logs)} onChange=${onChange} logs=${logs}/>`
+          : html`<${TrendsView} logs=${logs}/>`}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 createRoot(document.getElementById('root')).render(html`<${App}/>`);
