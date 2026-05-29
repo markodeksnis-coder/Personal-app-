@@ -3,25 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Performance</title>
+  <title>Performance OS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #0d1117;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      min-height: 100vh;
-      color: #e6edf3;
-    }
+    html, body, #root { height: 100%; }
+    body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background: #05050a; color: #f1f5f9; overflow: hidden; }
     input[type=number] { -moz-appearance: textfield; }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-    ::-webkit-scrollbar { width: 4px; }
+    input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
-    .tab-btn { transition: all 0.15s; }
-    .tab-btn:hover { color: #8b949e; }
-    .gym-btn { transition: all 0.15s; }
-    .gym-btn:hover { opacity: 0.85; }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.4); border-radius: 2px; }
+    @keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes glow-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes bar-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    @keyframes count-in { from { opacity: 0; transform: scale(0.88) translateY(6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .anim-up { animation: slide-up 0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .anim-count { animation: count-in 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+    .card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: border-color 0.2s ease, background 0.2s ease; }
+    .card:hover { border-color: rgba(139,92,246,0.2); background: rgba(255,255,255,0.04); }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-radius: 9px; cursor: pointer; color: #475569; font-size: 13px; font-weight: 500; transition: all 0.15s ease; border: 1px solid transparent; user-select: none; }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: #94a3b8; }
+    .nav-active { background: rgba(139,92,246,0.12) !important; color: #a78bfa !important; border-color: rgba(139,92,246,0.2) !important; }
+    .progress-track { height: 4px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transform-origin: left; animation: bar-in 1s cubic-bezier(0.4,0,0.2,1) both; }
+    .task-card { border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.02); }
+    .task-card:hover { border-color: rgba(139,92,246,0.25); background: rgba(139,92,246,0.04); }
+    .task-done { border-color: rgba(16,185,129,0.3) !important; background: rgba(16,185,129,0.04) !important; }
+    .streak-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.12)); border: 1px solid rgba(245,158,11,0.25); color: #fbbf24; }
+    .insight-item { padding: 9px 12px; border-radius: 9px; background: rgba(255,255,255,0.02); border-left: 2px solid; font-size: 11.5px; line-height: 1.5; color: #94a3b8; animation: slide-up 0.4s ease both; }
+    .btn-sm { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: #64748b; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: all 0.15s ease; }
+    .btn-sm:hover { border-color: rgba(139,92,246,0.3); color: #a78bfa; }
   </style>
 </head>
 <body>
@@ -32,402 +45,439 @@ import { createRoot } from 'https://esm.sh/react-dom@18/client';
 import htm from 'https://esm.sh/htm';
 const html = htm.bind(React.createElement);
 
-const KEY = 'perf-v1';
-const ds = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const today = () => ds(new Date());
-const loadLogs = () => { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch { return []; } };
-const saveLogs = logs => localStorage.setItem(KEY, JSON.stringify(logs.slice(-90)));
-const getToday = logs => logs.find(l => l.date === today()) || { date: today(), gym: null, calories: null, protein: null };
-const upsert = (logs, log) => {
-  const idx = logs.findIndex(l => l.date === log.date), next = [...logs];
-  idx >= 0 ? next[idx] = log : next.push(log);
-  return next.sort((a, b) => a.date.localeCompare(b.date));
-};
-const last14 = () => Array.from({length:14}, (_, i) => { const d = new Date(); d.setDate(d.getDate()-(13-i)); return ds(d); });
-const weekDays = () => {
-  const d = new Date(), mon = new Date(d);
-  mon.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
-  return Array.from({length:7}, (_, i) => { const dd = new Date(mon); dd.setDate(mon.getDate()+i); return ds(dd); });
-};
-const streak = (logs, fn) => {
-  let s = 0; const d = new Date();
-  for (let i = 0; i < 90; i++) { const l = logs.find(x => x.date === ds(d)); if (l && fn(l)) s++; else break; d.setDate(d.getDate()-1); }
-  return s;
-};
-const listAvg = nums => { const d = nums.filter(v => v != null); return d.length ? Math.round(d.reduce((a,b)=>a+b)/d.length) : null; };
+const KEY='perf-os-v1', GKEY='perf-goals-v1';
+const ds=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today=()=>ds(new Date());
+const loadLogs=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch{return[];}};
+const saveLogs=l=>localStorage.setItem(KEY,JSON.stringify(l.slice(-120)));
+const DG={calories:2200,protein:150,sleep:7.5,steps:10000,gymPerWeek:6,water:3};
+const loadGoals=()=>{try{return{...DG,...JSON.parse(localStorage.getItem(GKEY)||'{}')};}catch{return DG;}};
+const saveGoals=g=>localStorage.setItem(GKEY,JSON.stringify(g));
+const getTodayLog=logs=>logs.find(l=>l.date===today())||{date:today(),gym:null,calories:null,protein:null,sleep:null,steps:null,energy:null,morningRoutine:null,reading:null,water:null};
+const upsert=(logs,log)=>{const i=logs.findIndex(l=>l.date===log.date),n=[...logs];i>=0?n[i]=log:n.push(log);return n.sort((a,b)=>a.date.localeCompare(b.date));};
+const lastN=(logs,n)=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ds(d);}).map(dt=>logs.find(l=>l.date===dt)||null);
+const streakFn=(logs,fn)=>{let s=0;const d=new Date();for(let i=0;i<90;i++){const l=logs.find(x=>x.date===ds(d));if(l&&fn(l))s++;else break;d.setDate(d.getDate()-1);}return s;};
 
-const CG = 2200, CB = 3500, PG = 150;
-const calScore = v => v <= CG ? 100 : Math.max(0, Math.round(((CB-v)/(CB-CG))*100));
-const proScore = v => Math.min(100, Math.round((v/PG)*100));
-const dayScore = log => {
-  const s = [];
-  if (log.calories != null) s.push(calScore(log.calories));
-  if (log.protein != null) s.push(proScore(log.protein));
-  if (log.gym != null) s.push(log.gym ? 100 : 60);
-  return s.length ? Math.round(s.reduce((a,b)=>a+b)/s.length) : null;
+const sCAL=(v,g)=>v<=g?100:Math.max(0,Math.round(((g*1.5-v)/(g*0.5))*100));
+const sPRO=(v,g)=>Math.min(100,Math.round((v/g)*100));
+const sSLP=(v,g)=>Math.max(0,Math.round((1-Math.abs(v-g)/g)*100));
+const sSTP=(v,g)=>Math.min(100,Math.round((v/g)*100));
+const calcScore=(log,goals)=>{
+  if(!log)return null;
+  const s=[];
+  if(log.gym!==null)s.push(log.gym?100:20);
+  if(log.calories!=null)s.push(sCAL(log.calories,goals.calories));
+  if(log.protein!=null)s.push(sPRO(log.protein,goals.protein));
+  if(log.sleep!=null)s.push(sSLP(log.sleep,goals.sleep));
+  if(log.steps!=null)s.push(sSTP(log.steps,goals.steps));
+  if(log.energy!=null)s.push(log.energy*10);
+  if(log.morningRoutine!==null)s.push(log.morningRoutine?100:20);
+  if(log.reading!==null)s.push(log.reading?100:50);
+  if(log.water!=null)s.push(Math.min(100,Math.round((log.water/goals.water)*100)));
+  return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):null;
 };
+const SC=s=>s>=80?'#10b981':s>=60?'#8b5cf6':s>=40?'#f59e0b':'#ef4444';
+const SL=s=>s>=80?'OPTIMAL':s>=60?'PERFORMING':s>=40?'SUBOPTIMAL':'CRITICAL';
+const SG=s=>s>=80?'rgba(16,185,129,0.35)':s>=60?'rgba(139,92,246,0.35)':s>=40?'rgba(245,158,11,0.25)':'rgba(239,68,68,0.25)';
 
-const C = {
-  bg: '#0d1117', surface: '#161b22', card: '#1c2128', border: '#30363d',
-  border2: '#21262d', text: '#e6edf3', muted: '#8b949e', dim: '#484f58',
-  green: '#3fb950', orange: '#f0883e', blue: '#58a6ff', red: '#f85149', purple: '#bc8cff'
-};
+function genInsights(logs,goals){
+  const ins=[],r=lastN(logs,14),tod=logs.find(l=>l.date===today());
+  const slpD=r.filter(l=>l?.sleep!=null);
+  if(slpD.length>=3){const avg=slpD.reduce((a,l)=>a+l.sleep,0)/slpD.length;
+    if(avg<goals.sleep-0.5)ins.push({t:'warning',m:`Avg sleep ${avg.toFixed(1)}h — ${(goals.sleep-avg).toFixed(1)}h below target`});
+    else ins.push({t:'good',m:`Sleep avg ${avg.toFixed(1)}h — consistent with target`});}
+  const gymD=r.filter(l=>l?.gym===true).length;
+  if(gymD>=8)ins.push({t:'good',m:`${gymD}/14 training days — elite consistency`});
+  else if(gymD<=4&&r.filter(l=>l!==null).length>=7)ins.push({t:'bad',m:`${gymD}/14 training days — below target`});
+  const calD=r.filter(l=>l?.calories!=null);
+  if(calD.length>=5){const hit=calD.filter(l=>l.calories<=goals.calories).length;
+    if(hit/calD.length>=0.8)ins.push({t:'good',m:`Calorie control ${Math.round(hit/calD.length*100)}% — strong discipline`});
+    else ins.push({t:'warning',m:`Calorie target missed ${calD.length-hit}/${calD.length} days`});}
+  if(tod?.energy>=8)ins.push({t:'info',m:`Energy ${tod.energy}/10 today — capitalize now`});
+  else if(tod?.energy!=null&&tod.energy<=4)ins.push({t:'warning',m:'Low energy — prioritize recovery today'});
+  const proBad=r.filter(l=>l?.protein!=null&&l.protein<goals.protein*0.8);
+  if(proBad.length>=4)ins.push({t:'warning',m:'Protein under 80% target — impacts recovery'});
+  if(!ins.length)ins.push({t:'info',m:'Log daily metrics to unlock AI insights'});
+  return ins.slice(0,4);
+}
 
-const Dot = ({color='dim'}) => {
-  const c = C[color] || C.dim;
-  return html`<div style=${{width:10,height:10,borderRadius:'50%',background:c,boxShadow:`0 0 6px ${c}88`,flexShrink:0}}></div>`;
-};
-
-const Bar = ({pct, color='blue', h=7}) => {
-  const c = C[color] || C.blue;
+function StatusRing({score,size=220}){
+  const [on,setOn]=useState(false);
+  useEffect(()=>{const t=setTimeout(()=>setOn(true),200);return()=>clearTimeout(t);},[]);
+  const r=size/2-16,circ=2*Math.PI*r;
+  const off=on&&score!=null?circ*(1-score/100):circ;
+  const col=score!=null?SC(score):'#1e293b';
+  const glow=score!=null?SG(score):'transparent';
   return html`
-    <div style=${{height:h,background:C.border2,borderRadius:h,overflow:'hidden',flex:1}}>
-      <div style=${{height:'100%',width:`${Math.min(100,Math.max(0,pct||0))}%`,background:c,borderRadius:h,
-        transition:'width 0.9s cubic-bezier(0.4,0,0.2,1)',boxShadow:`0 0 8px ${c}55`}}></div>
-    </div>`;
-};
-
-const Badge = ({label, color='dim'}) => {
-  const c = C[color] || C.dim;
-  return html`<span style=${{fontSize:10,fontWeight:700,color:c,background:`${c}18`,border:`1px solid ${c}44`,padding:'3px 8px',borderRadius:20,whiteSpace:'nowrap'}}>${label}</span>`;
-};
-
-function ScoreRing({score}) {
-  const [on, setOn] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setOn(true), 150); return () => clearTimeout(t); }, []);
-  const r = 44, circ = 2 * Math.PI * r;
-  const off = on && score != null ? circ - (score/100)*circ : circ;
-  const col = score == null ? C.dim : score >= 80 ? C.green : score >= 55 ? C.orange : C.red;
-  return html`
-    <div style=${{position:'relative',width:108,height:108,display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
-      <svg width="108" height="108" style=${{transform:'rotate(-90deg)',position:'absolute'}}>
-        <circle cx="54" cy="54" r=${r} fill="none" stroke=${C.border2} strokeWidth="9"/>
-        ${score != null && html`
-          <circle cx="54" cy="54" r=${r} fill="none" stroke=${col} strokeWidth="9"
-            strokeLinecap="round"
-            strokeDasharray="${circ} ${circ}"
-            strokeDashoffset=${off}
-            style=${{transition:'stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)',filter:`drop-shadow(0 0 7px ${col})`}}/>
-        `}
+    <div style=${{position:'relative',width:size,height:size,display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
+      <div class="glow-pulse" style=${{position:'absolute',inset:-28,borderRadius:'50%',background:`radial-gradient(circle, ${glow} 0%, transparent 60%)`}}></div>
+      <svg width=${size} height=${size} style=${{transform:'rotate(-90deg)',position:'absolute',zIndex:1}}>
+        <circle cx=${size/2} cy=${size/2} r=${r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12"/>
+        ${score!=null&&html`<circle cx=${size/2} cy=${size/2} r=${r} fill="none" stroke=${col} strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray="${circ} ${circ}"
+          strokeDashoffset=${off}
+          style=${{transition:'stroke-dashoffset 1.6s cubic-bezier(0.4,0,0.2,1)',filter:`drop-shadow(0 0 16px ${col}) drop-shadow(0 0 32px ${col}66)`}}/>`}
+        ${Array.from({length:32},(_,i)=>{const a=(i/32)*2*Math.PI,ri=r-20,ro=r-14;
+          const x1=(size/2+Math.cos(a)*ri).toFixed(1),y1=(size/2+Math.sin(a)*ri).toFixed(1);
+          const x2=(size/2+Math.cos(a)*ro).toFixed(1),y2=(size/2+Math.sin(a)*ro).toFixed(1);
+          return html`<line key=${i} x1=${x1} y1=${y1} x2=${x2} y2=${y2} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>`;})}
       </svg>
-      <div style=${{textAlign:'center',zIndex:1}}>
-        <div style=${{fontSize:24,fontWeight:900,color:C.text,lineHeight:1}}>${score != null ? `${score}%` : '—'}</div>
-        <div style=${{fontSize:8,color:C.dim,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginTop:3}}>score</div>
+      <div style=${{position:'absolute',textAlign:'center',zIndex:2}}>
+        <div style=${{fontSize:9,color:'#334155',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.2em',marginBottom:6}}>SYSTEM STATUS</div>
+        <div class="anim-count" style=${{fontSize:score!=null?50:30,fontWeight:900,letterSpacing:'-2px',lineHeight:1,
+          color:score!=null?col:'#1e293b',textShadow:score!=null?`0 0 30px ${col}88`:'none'}}>
+          ${score!=null?score:'—'}
+        </div>
+        ${score!=null&&html`<div style=${{fontSize:9,fontWeight:700,letterSpacing:'0.15em',color:col,marginTop:8,textTransform:'uppercase'}}>${SL(score)}</div>`}
       </div>
     </div>`;
 }
 
-function NumInput({value, goal, step, min, max, onChange}) {
+function Chart({data,color='#8b5cf6',h=80}){
+  const W=300,vals=data.map(d=>d?.score??null),filled=vals.filter(v=>v!=null);
+  if(filled.length<2)return html`<div style=${{height:h,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#334155',fontStyle:'italic'}}>Log more days to see trend</div>`;
+  const lo=Math.max(0,Math.min(...filled)-8),hi=Math.min(100,Math.max(...filled)+8),rng=hi-lo||10,n=vals.length;
+  const px=(i,v)=>({x:(i/(n-1))*W,y:h-((v-lo)/rng)*(h*0.88)-h*0.06});
+  let path='',area='',go=false;const pts=[];
+  for(let i=0;i<n;i++){const v=vals[i];if(v==null){go=false;continue;}const p=px(i,v);pts.push({...p,v});
+    if(!go){path+=`M${p.x.toFixed(1)} ${p.y.toFixed(1)}`;area+=`M${p.x.toFixed(1)} ${h}`;go=true;}
+    else path+=` L${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+    area+=` L${p.x.toFixed(1)} ${p.y.toFixed(1)}`;}
+  if(pts.length)area+=` L${pts[pts.length-1].x.toFixed(1)} ${h} Z`;
+  const gid=`g${color.replace('#','')}`;
   return html`
-    <div style=${{display:'flex',alignItems:'center',gap:10}}>
-      <button class="gym-btn" onClick=${() => onChange(Math.max(min,(value??goal)-step))}
-        style=${{width:34,height:34,borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,color:C.muted,fontSize:20,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>
-        −
+    <svg viewBox="0 0 ${W} ${h}" width="100%" height=${h} preserveAspectRatio="none" style=${{overflow:'visible'}}>
+      <defs><linearGradient id=${gid} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor=${color} stopOpacity="0.28"/>
+        <stop offset="100%" stopColor=${color} stopOpacity="0"/>
+      </linearGradient></defs>
+      ${area&&html`<path d=${area} fill="url(#${gid})"/>`}
+      ${path&&html`<path d=${path} fill="none" stroke=${color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style=${{filter:`drop-shadow(0 0 5px ${color})`}}/>`}
+      ${pts.map(({x,y},i)=>html`<circle key=${i} cx=${x.toFixed(1)} cy=${y.toFixed(1)} r="3.5" fill=${color} style=${{filter:`drop-shadow(0 0 4px ${color})`}}/>`)}
+    </svg>`;
+}
+
+function Task({icon,label,sub,done,onToggle}){
+  return html`
+    <div class=${`task-card${done?' task-done':''}`} onClick=${onToggle}>
+      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style=${{display:'flex',alignItems:'center',gap:10}}>
+          <div style=${{width:36,height:36,borderRadius:10,
+            background:done?'rgba(16,185,129,0.15)':'rgba(255,255,255,0.05)',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,
+            boxShadow:done?'0 0 14px rgba(16,185,129,0.35)':undefined,transition:'all 0.2s'}}>${icon}</div>
+          <div>
+            <div style=${{fontSize:13,fontWeight:600,color:done?'#10b981':'#e2e8f0',transition:'color 0.2s'}}>${label}</div>
+            ${sub&&html`<div style=${{fontSize:10,color:'#475569',marginTop:1}}>${sub}</div>`}
+          </div>
+        </div>
+        <div style=${{width:22,height:22,borderRadius:'50%',
+          border:`2px solid ${done?'#10b981':'rgba(255,255,255,0.1)'}`,
+          background:done?'#10b981':'transparent',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          fontSize:11,color:'white',fontWeight:800,transition:'all 0.25s',
+          boxShadow:done?'0 0 10px rgba(16,185,129,0.5)':undefined}}>${done?'✓':''}</div>
+      </div>
+    </div>`;
+}
+
+function Metric({icon,label,val,goal,unit,color,step,min,max,inv,onChange}){
+  const pct=goal&&val!=null?Math.min(100,Math.round((val/goal)*100)):null;
+  const hit=inv?(val!=null&&val<=goal):(pct!=null&&pct>=100);
+  const c=hit?'#10b981':color;
+  return html`
+    <div class="card" style=${{padding:'14px'}}>
+      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+        <div style=${{display:'flex',alignItems:'center',gap:6}}>
+          <span style=${{fontSize:14}}>${icon}</span>
+          <span style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.08em'}}>${label}</span>
+        </div>
+        ${hit&&html`<div style=${{width:7,height:7,borderRadius:'50%',background:'#10b981',boxShadow:'0 0 8px #10b98177'}}></div>`}
+      </div>
+      <div style=${{display:'flex',alignItems:'baseline',gap:3,marginBottom:8}}>
+        <span style=${{fontSize:24,fontWeight:800,letterSpacing:'-0.5px',color:val!=null?c:'#1e293b'}}>${val??'—'}</span>
+        ${unit&&html`<span style=${{fontSize:11,color:'#475569',marginLeft:1}}>${unit}</span>`}
+        ${goal&&val!=null&&html`<span style=${{fontSize:10,color:'#334155',marginLeft:4}}>/ ${goal}</span>`}
+      </div>
+      <div style=${{display:'flex',alignItems:'center',gap:7}}>
+        <button class="btn-sm" onClick=${()=>onChange(Math.max(min,(val??goal)-step))}>−</button>
+        <div class="progress-track" style=${{flex:1}}>
+          <div class="progress-fill" style=${{width:`${pct||0}%`,background:c,boxShadow:`0 0 6px ${c}55`}}></div>
+        </div>
+        <button class="btn-sm" onClick=${()=>onChange(Math.min(max,(val??goal)+step))}>+</button>
+      </div>
+    </div>`;
+}
+
+function Energy({val,onChange}){
+  return html`
+    <div class="card" style=${{padding:'14px'}}>
+      <div style=${{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+        <span style=${{fontSize:14}}>⚡</span>
+        <span style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.08em'}}>Energy</span>
+      </div>
+      <div style=${{fontSize:24,fontWeight:800,letterSpacing:'-0.5px',marginBottom:10,
+        color:val!=null?(val>=7?'#10b981':val>=4?'#f59e0b':'#ef4444'):'#1e293b'}}>
+        ${val!=null?`${val}/10`:'—'}
+      </div>
+      <div style=${{display:'flex',gap:3}}>
+        ${Array.from({length:10},(_,i)=>html`
+          <div key=${i} onClick=${()=>onChange(i+1)}
+            style=${{flex:1,height:18,borderRadius:3,cursor:'pointer',transition:'all 0.15s',
+              background:val!=null&&i<val?(i<3?'#ef4444':i<6?'#f59e0b':'#10b981'):'rgba(255,255,255,0.05)',
+              boxShadow:val!=null&&i<val?`0 0 5px ${i<3?'#ef4444':i<6?'#f59e0b':'#10b981'}`:undefined}}></div>`)}
+      </div>
+    </div>`;
+}
+
+function Sidebar({page,setPage,score}){
+  const col=score!=null?SC(score):'#8b5cf6';
+  const nav=[
+    {id:'dashboard',label:'Dashboard',icon:'▦'},
+    {id:'analytics',label:'Analytics',icon:'↗'},
+    {id:'reviews',label:'Reviews',icon:'◈'},
+    {id:'goals',label:'Goals',icon:'◎'},
+    {id:'settings',label:'Settings',icon:'⚙'},
+  ];
+  return html`
+    <div style=${{width:220,background:'rgba(0,0,0,0.5)',borderRight:'1px solid rgba(255,255,255,0.05)',
+      display:'flex',flexDirection:'column',flexShrink:0,backdropFilter:'blur(20px)'}}>
+      <div style=${{padding:'20px 18px 14px',borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
+        <div style=${{display:'flex',alignItems:'center',gap:10}}>
+          <div style=${{width:34,height:34,borderRadius:10,
+            background:'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,
+            boxShadow:'0 4px 16px rgba(139,92,246,0.5)'}}>⚡</div>
+          <div>
+            <div style=${{fontSize:14,fontWeight:800,letterSpacing:'-0.3px'}}>Performance</div>
+            <div style=${{fontSize:9,color:'#475569',fontWeight:600,letterSpacing:'0.12em',textTransform:'uppercase'}}>OS</div>
+          </div>
+        </div>
+      </div>
+      <div style=${{padding:'12px 14px',borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+        <div style=${{background:'rgba(255,255,255,0.02)',borderRadius:10,padding:'10px 12px',border:`1px solid ${col}33`}}>
+          <div style=${{fontSize:9,color:'#334155',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:4}}>System Status</div>
+          <div style=${{fontSize:26,fontWeight:900,letterSpacing:'-1px',color:col,textShadow:`0 0 20px ${col}66`}}>
+            ${score!=null?`${score}%`:'—'}
+          </div>
+        </div>
+      </div>
+      <nav style=${{padding:'10px',flex:1}}>
+        ${nav.map(({id,label,icon})=>html`
+          <div key=${id} class=${`nav-item${page===id?' nav-active':''}`} onClick=${()=>setPage(id)}>
+            <span style=${{fontSize:15,lineHeight:1}}>${icon}</span>
+            <span>${label}</span>
+          </div>`)}
+      </nav>
+      <div style=${{padding:'14px 18px',borderTop:'1px solid rgba(255,255,255,0.04)'}}>
+        <div style=${{fontSize:9,color:'#1e293b',textAlign:'center',letterSpacing:'0.1em',textTransform:'uppercase'}}>Performance OS v2.0</div>
+      </div>
+    </div>`;
+}
+
+function Dashboard({logs,goals,onChange}){
+  const log=getTodayLog(logs),score=calcScore(log,goals);
+  const last7=lastN(logs,7).map(l=>({score:calcScore(l,goals)}));
+  const gymStreak=streakFn(logs,l=>l.gym===true);
+  const insights=genInsights(logs,goals);
+  const set=p=>onChange({...log,...p});
+  const hr=new Date().getHours();
+  const greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+  const fmtD=()=>new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const IC={warning:'#f59e0b',good:'#10b981',bad:'#ef4444',info:'#06b6d4'};
+  return html`
+    <div style=${{padding:'22px 26px',height:'100%',overflowY:'auto'}}>
+      <div style=${{display:'grid',gridTemplateColumns:'1fr 240px 1fr',gap:20,marginBottom:20,alignItems:'start'}}>
+        <div class="anim-up" style=${{animationDelay:'0ms'}}>
+          <div style=${{fontSize:10,color:'#334155',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:6}}>${fmtD()}</div>
+          <div style=${{fontSize:22,fontWeight:800,letterSpacing:'-0.5px',marginBottom:14}}>${greet}</div>
+          <div style=${{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
+            ${gymStreak>0&&html`<div class="streak-badge">🔥 ${gymStreak}-day streak</div>`}
+            ${score!=null&&html`<div style=${{display:'inline-flex',alignItems:'center',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:700,background:'rgba(139,92,246,0.1)',border:'1px solid rgba(139,92,246,0.2)',color:'#a78bfa'}}>${SL(score)}</div>`}
+          </div>
+          <div class="card" style=${{padding:'14px 16px'}}>
+            <div style=${{fontSize:10,fontWeight:700,color:'#334155',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:10}}>7-Day Trend</div>
+            <${Chart} data=${last7} color="#8b5cf6" h=${72}/>
+          </div>
+        </div>
+        <div class="anim-up" style=${{animationDelay:'80ms',display:'flex',justifyContent:'center'}}>
+          <${StatusRing} score=${score} size=${220}/>
+        </div>
+        <div class="anim-up" style=${{animationDelay:'160ms'}}>
+          <div style=${{fontSize:10,fontWeight:700,color:'#334155',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:10}}>AI INSIGHTS</div>
+          <div style=${{display:'flex',flexDirection:'column',gap:7}}>
+            ${insights.map((ins,i)=>html`
+              <div key=${i} class="insight-item" style=${{borderColor:IC[ins.t],animationDelay:`${i*60}ms`}}>
+                <span style=${{color:IC[ins.t],fontWeight:700,marginRight:5}}>${ins.t==='warning'?'⚠':ins.t==='good'?'↑':ins.t==='bad'?'↓':'→'}</span>${ins.m}
+              </div>`)}
+          </div>
+        </div>
+      </div>
+      <div class="anim-up" style=${{animationDelay:'120ms',marginBottom:18}}>
+        <div style=${{fontSize:10,fontWeight:700,color:'#334155',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:10}}>TODAY'S PROTOCOL</div>
+        <div style=${{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+          <${Task} icon="🏋️" label="Gym Session" sub="Strength training" done=${log.gym===true} onToggle=${()=>set({gym:log.gym!==true})}/>
+          <${Task} icon="🌅" label="Morning Routine" sub="Non-negotiable" done=${log.morningRoutine===true} onToggle=${()=>set({morningRoutine:log.morningRoutine!==true})}/>
+          <${Task} icon="📖" label="Reading" sub="30+ minutes" done=${log.reading===true} onToggle=${()=>set({reading:log.reading!==true})}/>
+        </div>
+      </div>
+      <div class="anim-up" style=${{animationDelay:'180ms'}}>
+        <div style=${{fontSize:10,fontWeight:700,color:'#334155',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:10}}>LIVE METRICS</div>
+        <div style=${{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:10}}>
+          <${Metric} icon="🔥" label="Calories" val=${log.calories} goal=${goals.calories} unit="kcal" color="#f59e0b" step=${50} min=${500} max=${5000} inv=${true} onChange=${v=>set({calories:v})}/>
+          <${Metric} icon="🥩" label="Protein" val=${log.protein} goal=${goals.protein} unit="g" color="#8b5cf6" step=${5} min=${0} max=${400} onChange=${v=>set({protein:v})}/>
+          <${Metric} icon="😴" label="Sleep" val=${log.sleep} goal=${goals.sleep} unit="h" color="#06b6d4" step=${0.5} min=${0} max=${14} onChange=${v=>set({sleep:v})}/>
+          <${Metric} icon="👟" label="Steps" val=${log.steps} goal=${goals.steps} unit="" color="#10b981" step=${500} min=${0} max=${30000} onChange=${v=>set({steps:v})}/>
+          <${Metric} icon="💧" label="Water" val=${log.water} goal=${goals.water} unit="L" color="#3b82f6" step=${0.25} min=${0} max=${6} onChange=${v=>set({water:v})}/>
+          <${Energy} val=${log.energy} onChange=${v=>set({energy:v})}/>
+        </div>
+      </div>
+    </div>`;
+}
+
+function Analytics({logs,goals}){
+  const r30=lastN(logs,30),r14=lastN(logs,14);
+  const sets=[
+    {label:'System Status',data:r30.map(l=>({score:calcScore(l,goals)})),color:'#8b5cf6'},
+    {label:'Calorie Control',data:r30.map(l=>({score:l?.calories!=null?sCAL(l.calories,goals.calories):null})),color:'#f59e0b'},
+    {label:'Protein',data:r30.map(l=>({score:l?.protein!=null?sPRO(l.protein,goals.protein):null})),color:'#a78bfa'},
+    {label:'Sleep',data:r30.map(l=>({score:l?.sleep!=null?sSLP(l.sleep,goals.sleep):null})),color:'#06b6d4'},
+  ];
+  const habits=[
+    {label:'Gym',fn:l=>l?.gym===true,color:'#10b981'},
+    {label:'Morning Routine',fn:l=>l?.morningRoutine===true,color:'#8b5cf6'},
+    {label:'Reading',fn:l=>l?.reading===true,color:'#06b6d4'},
+    {label:'Calories on Target',fn:l=>l?.calories!=null&&l.calories<=goals.calories,color:'#f59e0b'},
+    {label:'Protein Goal',fn:l=>l?.protein!=null&&l.protein>=goals.protein,color:'#a78bfa'},
+  ];
+  return html`
+    <div style=${{padding:'22px 26px',height:'100%',overflowY:'auto'}}>
+      <div style=${{marginBottom:20}}><div style=${{fontSize:20,fontWeight:800,letterSpacing:'-0.3px',marginBottom:3}}>Analytics</div><div style=${{fontSize:12,color:'#475569'}}>30-day performance analysis</div></div>
+      <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
+        ${sets.map(({label,data,color})=>html`
+          <div key=${label} class="card" style=${{padding:'16px'}}>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <span style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em'}}>${label}</span>
+              <div style=${{width:7,height:7,borderRadius:'50%',background:color,boxShadow:`0 0 7px ${color}`}}></div>
+            </div>
+            <${Chart} data=${data} color=${color} h=${90}/>
+          </div>`)}
+      </div>
+      <div class="card" style=${{padding:'18px'}}>
+        <div style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:14}}>14-Day Habit Consistency</div>
+        ${habits.map(({label,fn,color})=>{
+          const tot=r14.filter(l=>l!=null).length,hits=r14.filter(l=>l&&fn(l)).length,pct=tot?Math.round((hits/tot)*100):0;
+          return html`
+            <div key=${label} style=${{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+              <div style=${{width:124,fontSize:12,color:'#94a3b8',fontWeight:500,flexShrink:0}}>${label}</div>
+              <div class="progress-track" style=${{flex:1}}><div class="progress-fill" style=${{width:`${pct}%`,background:color,boxShadow:`0 0 4px ${color}55`}}></div></div>
+              <div style=${{width:34,textAlign:'right',fontSize:11,fontWeight:700,color,flexShrink:0}}>${pct}%</div>
+            </div>`;})}
+      </div>
+    </div>`;
+}
+
+function Reviews({logs,goals}){
+  const tw=lastN(logs,7);
+  const lw=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(14-i));return ds(d);}).map(dt=>logs.find(l=>l.date===dt)||null);
+  const avg=arr=>{const s=arr.map(l=>calcScore(l,goals)).filter(s=>s!=null);return s.length?Math.round(s.reduce((a,b)=>a+b)/s.length):null;};
+  const ta=avg(tw),la=avg(lw),diff=ta!=null&&la!=null?ta-la:null;
+  const logged=tw.filter(l=>l!=null).length,gym=tw.filter(l=>l?.gym===true).length;
+  const calHit=tw.filter(l=>l?.calories!=null&&l.calories<=goals.calories).length;
+  const proHit=tw.filter(l=>l?.protein!=null&&l.protein>=goals.protein).length;
+  return html`
+    <div style=${{padding:'22px 26px',height:'100%',overflowY:'auto'}}>
+      <div style=${{marginBottom:20}}><div style=${{fontSize:20,fontWeight:800,letterSpacing:'-0.3px',marginBottom:3}}>Weekly Review</div><div style=${{fontSize:12,color:'#475569'}}>Performance debrief</div></div>
+      <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}}>
+        <div class="card" style=${{padding:'20px',textAlign:'center'}}>
+          <div style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:8}}>This Week Avg</div>
+          <div style=${{fontSize:46,fontWeight:900,letterSpacing:'-2px',color:ta!=null?SC(ta):'#1e293b'}}>${ta??'—'}</div>
+          ${ta!=null&&html`<div style=${{fontSize:10,fontWeight:700,color:SC(ta),letterSpacing:'0.1em',marginTop:4}}>${SL(ta)}</div>`}
+        </div>
+        <div class="card" style=${{padding:'20px',textAlign:'center'}}>
+          <div style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:8}}>vs Last Week</div>
+          <div style=${{fontSize:46,fontWeight:900,letterSpacing:'-2px',color:la!=null?SC(la):'#1e293b'}}>${la??'—'}</div>
+          ${diff!=null&&html`<div style=${{fontSize:14,fontWeight:700,color:diff>=0?'#10b981':'#ef4444',marginTop:4}}>${diff>=0?'↑':'↓'} ${Math.abs(diff)} pts</div>`}
+        </div>
+      </div>
+      <div class="card" style=${{padding:'18px'}}>
+        <div style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:16}}>This Week Breakdown</div>
+        ${[{label:'Gym Sessions',val:gym,max:7,color:'#10b981'},{label:'Calories on Target',val:calHit,max:logged||7,color:'#f59e0b'},{label:'Protein Goal Hit',val:proHit,max:logged||7,color:'#8b5cf6'},{label:'Days Logged',val:logged,max:7,color:'#06b6d4'}].map(({label,val,max,color})=>html`
+          <div key=${label} style=${{marginBottom:14}}>
+            <div style=${{display:'flex',justifyContent:'space-between',marginBottom:5}}><span style=${{fontSize:12,color:'#94a3b8',fontWeight:500}}>${label}</span><span style=${{fontSize:12,fontWeight:700,color}}>${val}/${max}</span></div>
+            <div class="progress-track"><div class="progress-fill" style=${{width:`${max?Math.round((val/max)*100):0}%`,background:color,boxShadow:`0 0 4px ${color}55`}}></div></div>
+          </div>`)}
+      </div>
+    </div>`;
+}
+
+function Goals({goals,onSave}){
+  const [d,setD]=useState(goals),[ok,setOk]=useState(false);
+  const save=()=>{onSave(d);setOk(true);setTimeout(()=>setOk(false),2000);};
+  const fields=[
+    {k:'calories',l:'Calorie Target',u:'kcal',icon:'🔥',s:50,min:1000,max:5000},
+    {k:'protein',l:'Protein Target',u:'g',icon:'🥩',s:5,min:50,max:300},
+    {k:'sleep',l:'Sleep Target',u:'h',icon:'😴',s:0.5,min:4,max:12},
+    {k:'steps',l:'Steps Target',u:'',icon:'👟',s:500,min:1000,max:30000},
+    {k:'gymPerWeek',l:'Gym Per Week',u:'x/wk',icon:'🏋️',s:1,min:1,max:7},
+    {k:'water',l:'Water Target',u:'L',icon:'💧',s:0.25,min:1,max:6},
+  ];
+  return html`
+    <div style=${{padding:'22px 26px',height:'100%',overflowY:'auto'}}>
+      <div style=${{marginBottom:20}}><div style=${{fontSize:20,fontWeight:800,letterSpacing:'-0.3px',marginBottom:3}}>Goals</div><div style=${{fontSize:12,color:'#475569'}}>Set your performance targets</div></div>
+      <div style=${{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(230px,1fr))',gap:12,marginBottom:20}}>
+        ${fields.map(({k,l,u,icon,s,min,max})=>html`
+          <div key=${k} class="card" style=${{padding:'16px'}}>
+            <div style=${{display:'flex',alignItems:'center',gap:8,marginBottom:12}}><span style=${{fontSize:16}}>${icon}</span><span style=${{fontSize:13,fontWeight:700,color:'#e2e8f0'}}>${l}</span></div>
+            <div style=${{display:'flex',alignItems:'center',gap:8}}>
+              <button class="btn-sm" onClick=${()=>setD(p=>({...p,[k]:Math.max(min,p[k]-s)}))}>−</button>
+              <input type="number" value=${d[k]} onChange=${e=>{const n=parseFloat(e.target.value);if(!isNaN(n))setD(p=>({...p,[k]:Math.min(max,Math.max(min,n))}));}}
+                style=${{flex:1,textAlign:'center',fontSize:20,fontWeight:800,color:'#f1f5f9',background:'transparent',border:'none',borderBottom:'2px solid rgba(255,255,255,0.07)',outline:'none',padding:'4px 0',colorScheme:'dark'}}/>
+              <span style=${{fontSize:11,color:'#475569',minWidth:28}}>${u}</span>
+              <button class="btn-sm" onClick=${()=>setD(p=>({...p,[k]:Math.min(max,p[k]+s)}))}>+</button>
+            </div>
+          </div>`)}
+      </div>
+      <button onClick=${save} style=${{padding:'11px 28px',borderRadius:9,border:'none',cursor:'pointer',fontSize:13,fontWeight:700,background:ok?'rgba(16,185,129,0.2)':'linear-gradient(135deg,#8b5cf6,#06b6d4)',color:ok?'#10b981':'white',boxShadow:ok?'0 0 20px rgba(16,185,129,0.2)':'0 4px 18px rgba(139,92,246,0.35)',transition:'all 0.3s ease'}}>
+        ${ok?'✓ Saved':'Save Targets'}
       </button>
-      <input type="number" value=${value??''} placeholder="—"
-        onInput=${e => { const n = parseFloat(e.target.value); onChange(isNaN(n) ? null : Math.min(max,Math.max(min,n))); }}
-        style=${{width:88,textAlign:'center',fontSize:24,fontWeight:800,color:C.text,background:'transparent',border:'none',borderBottom:`2px solid ${C.border}`,outline:'none',padding:'4px 0',colorScheme:'dark'}}/>
-      <button class="gym-btn" onClick=${() => onChange(Math.min(max,(value??goal)+step))}
-        style=${{width:34,height:34,borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,color:C.muted,fontSize:20,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>
-        +
-      </button>
     </div>`;
 }
 
-function MetricRow({icon, label, valueTxt, goalTxt, pct, barColor, dotColor, badge, streak: st, isLast}) {
+function SettingsPage(){
   return html`
-    <div style=${{display:'flex',alignItems:'center',gap:0,padding:'13px 18px',borderBottom:isLast?'none':`1px solid ${C.bg}`}}>
-      <div style=${{width:22,flexShrink:0,display:'flex',alignItems:'center'}}><${Dot} color=${dotColor}/></div>
-      <div style=${{display:'flex',alignItems:'center',gap:7,width:110,flexShrink:0}}>
-        <span style=${{fontSize:15}}>${icon}</span>
-        <span style=${{fontSize:13,fontWeight:600,color:C.text}}>${label}</span>
+    <div style=${{padding:'22px 26px',height:'100%',overflowY:'auto'}}>
+      <div style=${{marginBottom:20}}><div style=${{fontSize:20,fontWeight:800,letterSpacing:'-0.3px',marginBottom:3}}>Settings</div><div style=${{fontSize:12,color:'#475569'}}>Configuration</div></div>
+      <div class="card" style=${{padding:'18px',marginBottom:12}}>
+        <div style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:12}}>About</div>
+        <p style=${{fontSize:12,color:'#64748b',lineHeight:1.8}}>Performance OS — Your personal mission control.<br/>All data stored locally in your browser. No account required.</p>
       </div>
-      <div style=${{width:68,textAlign:'right',fontSize:13,fontWeight:700,color:dotColor==='green'?C.green:C.text,flexShrink:0}}>${valueTxt}</div>
-      <div style=${{width:58,textAlign:'right',fontSize:11,color:C.dim,flexShrink:0}}>${goalTxt}</div>
-      <div style=${{flex:1,display:'flex',alignItems:'center',gap:8,marginLeft:12}}>
-        <${Bar} pct=${pct} color=${barColor}/>
-        <span style=${{fontSize:11,fontWeight:700,color:C.dim,width:32,textAlign:'right',flexShrink:0}}>${pct != null ? `${pct}%` : ''}</span>
-      </div>
-      <div style=${{width:52,textAlign:'right',flexShrink:0}}>
-        ${st > 1 && html`<span style=${{fontSize:10,fontWeight:700,color:C.orange}}>🔥${st}d</span>`}
+      <div class="card" style=${{padding:'18px'}}>
+        <div style=${{fontSize:10,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:12}}>Data</div>
+        <button onClick=${()=>{if(confirm('Clear all data?')){localStorage.clear();window.location.reload();}}}
+          style=${{padding:'9px 18px',borderRadius:8,border:'1px solid rgba(239,68,68,0.25)',background:'rgba(239,68,68,0.05)',color:'#ef4444',fontSize:12,fontWeight:700,cursor:'pointer'}}>Clear All Data</button>
       </div>
     </div>`;
 }
 
-const SectionHead = ({title}) => html`
-  <div style=${{fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:10,paddingLeft:2}}>${title}</div>`;
-
-const fmtDate = s => new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-
-function TodayView({log, onChange, logs}) {
-  const set = p => onChange({...log,...p});
-  const score = dayScore(log);
-  const calPct = log.calories != null ? calScore(log.calories) : null;
-  const proPct = log.protein != null ? proScore(log.protein) : null;
-  const calHit = log.calories != null && log.calories <= CG;
-  const proHit = log.protein != null && log.protein >= PG;
-  const gymThisWeek = weekDays().filter(d => logs.find(l => l.date === d)?.gym === true).length;
-  const calStr = streak(logs, l => l.calories != null && l.calories <= CG);
-  const proStr = streak(logs, l => l.protein != null && l.protein >= PG);
-  const gymStr = streak(logs, l => l.gym === true);
-  const calDot = calPct == null ? 'dim' : calPct >= 80 ? 'green' : calPct >= 50 ? 'orange' : 'red';
-  const proDot = proPct == null ? 'dim' : proPct >= 100 ? 'green' : proPct >= 70 ? 'blue' : 'orange';
-  const gymDot = log.gym === null ? 'dim' : log.gym ? 'green' : 'orange';
-  const gymPct = Math.round((gymThisWeek / 6) * 100);
-  const gymBarColor = gymThisWeek >= 6 ? 'green' : gymThisWeek >= 4 ? 'orange' : 'red';
-
+function App(){
+  const [logs,setLogs]=useState([]),[goals,setGoals]=useState(DG),[page,setPage]=useState('dashboard');
+  useEffect(()=>{setLogs(loadLogs());setGoals(loadGoals());},[]);
+  const onChange=up=>{const n=upsert(logs,up);setLogs(n);saveLogs(n);};
+  const onSave=g=>{setGoals(g);saveGoals(g);};
+  const score=calcScore(getTodayLog(logs),goals);
+  const bg=score!=null?`radial-gradient(ellipse 80% 35% at 50% -5%, ${SG(score)} 0%, transparent 50%)`:'radial-gradient(ellipse 80% 35% at 50% -5%, rgba(139,92,246,0.1) 0%, transparent 50%)';
   return html`
-    <div style=${{display:'flex',flexDirection:'column',gap:16}}>
-      <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 20px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <div>
-          <div style=${{fontSize:12,color:C.dim,fontWeight:500,marginBottom:5}}>${fmtDate(log.date)}</div>
-          <div style=${{fontSize:18,fontWeight:800,color:C.text,marginBottom:10}}>Today's Overview</div>
-          <div style=${{display:'flex',gap:8,flexWrap:'wrap'}}>
-            ${gymThisWeek > 0 && html`<${Badge} label=${`🏋️ ${gymThisWeek}/6 this week`} color=${gymThisWeek>=6?'green':'orange'}/>`}
-            ${gymStr > 1 && html`<${Badge} label=${`🔥 ${gymStr}d gym streak`} color="orange"/>`}
-            ${score != null && html`<${Badge} label=${score>=80?'✓ On track':score>=60?'Almost there':'Needs work'} color=${score>=80?'green':score>=60?'orange':'red'}/>`}
-          </div>
-        </div>
-        <${ScoreRing} score=${score}/>
-      </div>
-
-      <div>
-        <${SectionHead} title="Health Metrics"/>
-        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,overflow:'hidden'}}>
-          <div style=${{display:'flex',alignItems:'center',gap:0,padding:'9px 18px',borderBottom:`1px solid ${C.border2}`,background:C.bg}}>
-            <div style=${{width:22,flexShrink:0}}></div>
-            <div style=${{width:110,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',flexShrink:0}}>Metric</div>
-            <div style=${{width:68,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Current</div>
-            <div style=${{width:58,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Goal</div>
-            <div style=${{flex:1,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',marginLeft:12}}>Progress</div>
-            <div style=${{width:52,flexShrink:0}}></div>
-          </div>
-          <${MetricRow} icon="🔥" label="Calories" valueTxt=${log.calories!=null?log.calories.toLocaleString():'—'}
-            goalTxt="≤ 2,200" pct=${calPct} barColor=${calDot} dotColor=${calDot} streak=${calStr}/>
-          <${MetricRow} icon="🥩" label="Protein" valueTxt=${log.protein!=null?`${log.protein}g`:'—'}
-            goalTxt="≥ 150g" pct=${proPct} barColor=${proDot==='dim'?'dim':proDot} dotColor=${proDot} streak=${proStr}/>
-          <${MetricRow} icon="🏋️" label="Gym" valueTxt=${`${gymThisWeek}/6 wk`}
-            goalTxt="6× / wk" pct=${gymPct} barColor=${gymBarColor} dotColor=${gymDot} streak=${gymStr} isLast=${true}/>
-        </div>
-      </div>
-
-      <div>
-        <${SectionHead} title="Log Today"/>
-        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,overflow:'hidden'}}>
-          <div style=${{padding:'16px 20px',borderBottom:`1px solid ${C.border2}`}}>
-            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-              <div style=${{display:'flex',alignItems:'center',gap:7}}>
-                <span style=${{fontSize:15}}>🔥</span>
-                <span style=${{fontSize:13,fontWeight:700,color:C.text}}>Calories</span>
-              </div>
-              ${calHit ? html`<${Badge} label="ON TRACK ✓" color="green"/>` : log.calories!=null && html`<${Badge} label=${`+${(log.calories-CG).toLocaleString()} over goal`} color="orange"/>`}
-            </div>
-            <${NumInput} value=${log.calories} goal=${CG} step=${50} min=${500} max=${5000} onChange=${v=>set({calories:v})}/>
-            ${log.calories != null && html`
-              <div style=${{marginTop:12,display:'flex',alignItems:'center',gap:8}}>
-                <${Bar} pct=${calPct} color=${calDot} h=${8}/>
-                <span style=${{fontSize:11,color:C.muted,fontWeight:700,width:34,textAlign:'right'}}>${calPct}%</span>
-              </div>`}
-          </div>
-          <div style=${{padding:'16px 20px',borderBottom:`1px solid ${C.border2}`}}>
-            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-              <div style=${{display:'flex',alignItems:'center',gap:7}}>
-                <span style=${{fontSize:15}}>🥩</span>
-                <span style=${{fontSize:13,fontWeight:700,color:C.text}}>Protein</span>
-              </div>
-              ${proHit ? html`<${Badge} label="GOAL HIT ✓" color="green"/>` : log.protein!=null && html`<${Badge} label=${`${PG-log.protein}g to go`} color="blue"/>`}
-            </div>
-            <${NumInput} value=${log.protein} goal=${PG} step=${5} min=${0} max=${400} onChange=${v=>set({protein:v})}/>
-            ${log.protein != null && html`
-              <div style=${{marginTop:12,display:'flex',alignItems:'center',gap:8}}>
-                <${Bar} pct=${proPct} color=${proDot==='dim'?'dim':proDot} h=${8}/>
-                <span style=${{fontSize:11,color:C.muted,fontWeight:700,width:34,textAlign:'right'}}>${proPct}%</span>
-              </div>`}
-          </div>
-          <div style=${{padding:'16px 20px'}}>
-            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-              <div style=${{display:'flex',alignItems:'center',gap:7}}>
-                <span style=${{fontSize:15}}>🏋️</span>
-                <span style=${{fontSize:13,fontWeight:700,color:C.text}}>Gym Session</span>
-              </div>
-              ${log.gym===true && html`<${Badge} label="TRAINED ✓" color="green"/>`}
-              ${log.gym===false && html`<${Badge} label="REST DAY" color="dim"/>`}
-            </div>
-            <div style=${{display:'flex',gap:10}}>
-              <button class="gym-btn" onClick=${() => set({gym:true})}
-                style=${{flex:1,padding:'11px 0',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',
-                  border:`1px solid ${log.gym===true?C.green:C.border}`,
-                  background:log.gym===true?`${C.green}20`:C.card,
-                  color:log.gym===true?C.green:C.muted}}>
-                I TRAINED 💪
-              </button>
-              <button class="gym-btn" onClick=${() => set({gym:false})}
-                style=${{flex:1,padding:'11px 0',borderRadius:8,fontWeight:700,fontSize:13,cursor:'pointer',
-                  border:`1px solid ${log.gym===false?C.dim:C.border}`,
-                  background:log.gym===false?`${C.dim}20`:C.card,
-                  color:log.gym===false?C.muted:C.dim}}>
-                REST DAY
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>`;
-}
-
-const DAYS = ['M','T','W','T','F','S','S'];
-
-function TrendsView({logs}) {
-  const d14 = last14(), wd = weekDays(), tod = today();
-  const cal14 = d14.map(d => logs.find(l => l.date===d)?.calories ?? null);
-  const pro14 = d14.map(d => logs.find(l => l.date===d)?.protein ?? null);
-  const calAvg = listAvg(cal14), proAvg = listAvg(pro14);
-  const calStr = streak(logs, l => l.calories!=null && l.calories<=CG);
-  const proStr = streak(logs, l => l.protein!=null && l.protein>=PG);
-  const gymStr = streak(logs, l => l.gym===true);
-  const calLogged = cal14.filter(v=>v!=null).length;
-  const proLogged = pro14.filter(v=>v!=null).length;
-  const calHitDays = cal14.filter(v=>v!=null&&v<=CG).length;
-  const proHitDays = pro14.filter(v=>v!=null&&v>=PG).length;
-  const gymTotal14 = d14.filter(d=>logs.find(l=>l.date===d)?.gym===true).length;
-  const gymThisWeek = wd.filter(d=>logs.find(l=>l.date===d)?.gym===true).length;
-
-  return html`
-    <div style=${{display:'flex',flexDirection:'column',gap:16}}>
-      <div>
-        <${SectionHead} title="14-Day Summary"/>
-        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,overflow:'hidden'}}>
-          <div style=${{display:'flex',alignItems:'center',gap:0,padding:'9px 18px',borderBottom:`1px solid ${C.border2}`,background:C.bg}}>
-            <div style=${{width:22,flexShrink:0}}></div>
-            <div style=${{width:110,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',flexShrink:0}}>Metric</div>
-            <div style=${{width:68,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Avg</div>
-            <div style=${{width:58,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',textAlign:'right',flexShrink:0}}>Goal</div>
-            <div style=${{flex:1,fontSize:10,fontWeight:700,color:C.dim,textTransform:'uppercase',letterSpacing:'0.1em',marginLeft:12}}>Hit Rate</div>
-            <div style=${{width:52,flexShrink:0}}></div>
-          </div>
-          <${MetricRow} icon="🔥" label="Calories"
-            valueTxt=${calAvg!=null?calAvg.toLocaleString():'—'} goalTxt="≤ 2,200"
-            pct=${calLogged ? Math.round((calHitDays/calLogged)*100) : null}
-            barColor=${calAvg==null?'dim':calAvg<=CG?'green':'orange'}
-            dotColor=${calAvg==null?'dim':calAvg<=CG?'green':'orange'} streak=${calStr}/>
-          <${MetricRow} icon="🥩" label="Protein"
-            valueTxt=${proAvg!=null?`${proAvg}g`:'—'} goalTxt="≥ 150g"
-            pct=${proLogged ? Math.round((proHitDays/proLogged)*100) : null}
-            barColor=${proAvg==null?'dim':proAvg>=PG?'green':'blue'}
-            dotColor=${proAvg==null?'dim':proAvg>=PG?'green':'blue'} streak=${proStr}/>
-          <${MetricRow} icon="🏋️" label="Gym"
-            valueTxt=${`${gymTotal14}/14d`} goalTxt="6×/wk"
-            pct=${Math.round((gymTotal14/14)*100)}
-            barColor=${gymTotal14>=8?'green':gymTotal14>=5?'orange':'red'}
-            dotColor=${gymTotal14>=8?'green':gymTotal14>=5?'orange':'red'}
-            streak=${gymStr} isLast=${true}/>
-        </div>
-      </div>
-
-      <div>
-        <${SectionHead} title="Gym — This Week"/>
-        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 20px'}}>
-          <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
-            <div style=${{display:'flex',alignItems:'center',gap:10}}>
-              <span style=${{fontSize:26,fontWeight:900,color:gymThisWeek>=6?C.green:C.text,lineHeight:1}}>${gymThisWeek}</span>
-              <span style=${{fontSize:13,color:C.dim,fontWeight:600}}>/6 sessions</span>
-            </div>
-            ${gymStr>1 && html`<${Badge} label=${`🔥 ${gymStr}-day streak`} color="orange"/>`}
-          </div>
-          <div style=${{display:'flex',gap:6,marginBottom:12}}>
-            ${wd.map((d,i) => {
-              const l = logs.find(x=>x.date===d);
-              const went = l?.gym===true, rest = l?.gym===false, isTod = d===tod, fut = d>tod;
-              const bg = went ? C.green : rest ? C.border2 : isTod ? `${C.blue}12` : 'transparent';
-              const bdr = went ? C.green : rest ? C.border : isTod ? C.blue : C.border2;
-              const fc = went ? 'white' : rest ? C.dim : isTod ? C.blue : C.border;
-              return html`
-                <div key=${d} style=${{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:5}}>
-                  <span style=${{fontSize:10,color:C.dim,fontWeight:700}}>${DAYS[i]}</span>
-                  <div style=${{width:34,height:34,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',
-                    fontSize:12,fontWeight:800,border:`2px ${isTod?'dashed':'solid'} ${bdr}`,background:bg,color:fc,
-                    boxShadow:went?`0 0 10px ${C.green}44`:undefined}}>
-                    ${went?'✓':rest?'–':''}
-                  </div>
-                </div>`;
-            })}
-          </div>
-          <${Bar} pct=${Math.round((gymThisWeek/6)*100)} color=${gymThisWeek>=6?'green':gymThisWeek>=4?'orange':'red'} h=${8}/>
-        </div>
-      </div>
-
-      <div>
-        <${SectionHead} title="Daily Progress — Last 7 Days"/>
-        <div style=${{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:'16px 20px'}}>
-          <div style=${{display:'flex',gap:16,marginBottom:14}}>
-            <div style=${{display:'flex',alignItems:'center',gap:5}}><div style=${{width:10,height:10,borderRadius:2,background:C.orange}}></div><span style=${{fontSize:11,color:C.muted,fontWeight:600}}>Calories</span></div>
-            <div style=${{display:'flex',alignItems:'center',gap:5}}><div style=${{width:10,height:10,borderRadius:2,background:C.blue}}></div><span style=${{fontSize:11,color:C.muted,fontWeight:600}}>Protein</span></div>
-            <div style=${{display:'flex',alignItems:'center',gap:5}}><div style=${{width:10,height:10,borderRadius:2,background:C.green}}></div><span style=${{fontSize:11,color:C.muted,fontWeight:600}}>Goal hit</span></div>
-          </div>
-          ${d14.slice(-7).map(d => {
-            const l = logs.find(x=>x.date===d);
-            const cal = l?.calories??null, pro = l?.protein??null;
-            const label = new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-            const isToday = d === tod;
-            if (cal==null && pro==null) return html`
-              <div key=${d} style=${{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-                <span style=${{fontSize:11,color:C.dim,fontWeight:500,width:46,flexShrink:0}}>${label}${isToday?' •':''}</span>
-                <span style=${{fontSize:11,color:C.dim,fontStyle:'italic'}}>not logged</span>
-              </div>`;
-            return html`
-              <div key=${d} style=${{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-                <span style=${{fontSize:11,color:isToday?C.blue:C.muted,fontWeight:isToday?700:500,width:46,flexShrink:0}}>${label}${isToday?' •':''}</span>
-                <div style=${{flex:1,display:'flex',flexDirection:'column',gap:4}}>
-                  ${cal!=null && html`
-                    <div style=${{display:'flex',alignItems:'center',gap:8}}>
-                      <div style=${{flex:1,height:7,background:C.border2,borderRadius:3,overflow:'hidden'}}>
-                        <div style=${{height:'100%',width:`${Math.min(100,calScore(cal))}%`,background:cal<=CG?C.green:C.orange,borderRadius:3}}></div>
-                      </div>
-                      <span style=${{fontSize:10,color:C.dim,width:65,textAlign:'right',fontWeight:600}}>${cal.toLocaleString()} kcal</span>
-                    </div>`}
-                  ${pro!=null && html`
-                    <div style=${{display:'flex',alignItems:'center',gap:8}}>
-                      <div style=${{flex:1,height:7,background:C.border2,borderRadius:3,overflow:'hidden'}}>
-                        <div style=${{height:'100%',width:`${Math.min(100,proScore(pro))}%`,background:pro>=PG?C.green:C.blue,borderRadius:3}}></div>
-                      </div>
-                      <span style=${{fontSize:10,color:C.dim,width:65,textAlign:'right',fontWeight:600}}>${pro}g protein</span>
-                    </div>`}
-                </div>
-              </div>`;
-          })}
-        </div>
-      </div>
-    </div>`;
-}
-
-function App() {
-  const [logs, setLogs] = useState([]);
-  const [tab, setTab] = useState('today');
-  useEffect(() => setLogs(loadLogs()), []);
-  const onChange = updated => { const next = upsert(logs, updated); setLogs(next); saveLogs(next); };
-  return html`
-    <div style=${{minHeight:'100vh',background:C.bg}}>
-      <div style=${{maxWidth:640,margin:'0 auto',padding:'0 16px 40px'}}>
-        <div style=${{padding:'18px 0 14px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:`1px solid ${C.border2}`,marginBottom:18}}>
-          <div style=${{display:'flex',alignItems:'center',gap:12}}>
-            <div style=${{width:8,height:8,borderRadius:'50%',background:C.green,boxShadow:`0 0 8px ${C.green}`}}></div>
-            <h1 style=${{fontSize:16,fontWeight:800,color:C.text,letterSpacing:'-0.2px'}}>My Performance</h1>
-          </div>
-          <span style=${{fontSize:11,color:C.dim,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.1em'}}>Health · Gym · Nutrition</span>
-        </div>
-        <div style=${{display:'flex',gap:3,marginBottom:18,background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:3}}>
-          ${['today','trends'].map(t => html`
-            <button key=${t} class="tab-btn" onClick=${() => setTab(t)}
-              style=${{flex:1,padding:'8px 0',borderRadius:6,fontSize:11,fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',cursor:'pointer',border:'none',
-                background:t===tab?C.card:'transparent',color:t===tab?C.text:C.dim,
-                boxShadow:t===tab?'0 1px 4px rgba(0,0,0,0.5)':undefined}}>
-              ${t==='today'?'📋  Today':'📈  Trends'}
-            </button>`)}
-        </div>
-        ${tab==='today'
-          ? html`<${TodayView} log=${getToday(logs)} onChange=${onChange} logs=${logs}/>`
-          : html`<${TrendsView} logs=${logs}/>`}
-      </div>
+    <div style=${{display:'flex',height:'100vh',background:'#05050a',backgroundImage:bg,overflow:'hidden'}}>
+      <${Sidebar} page=${page} setPage=${setPage} score=${score}/>
+      <main style=${{flex:1,overflow:'hidden',display:'flex',flexDirection:'column'}}>
+        ${page==='dashboard'&&html`<${Dashboard} logs=${logs} goals=${goals} onChange=${onChange}/>`}
+        ${page==='analytics'&&html`<${Analytics} logs=${logs} goals=${goals}/>`}
+        ${page==='reviews'&&html`<${Reviews} logs=${logs} goals=${goals}/>`}
+        ${page==='goals'&&html`<${Goals} goals=${goals} onSave=${onSave}/>`}
+        ${page==='settings'&&html`<${SettingsPage}/>`}
+      </main>
     </div>`;
 }
 
