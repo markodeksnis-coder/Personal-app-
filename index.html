@@ -58,18 +58,18 @@ const today=()=>ds(new Date());
 const ld=k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}};
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
-const DT={calories:2200,protein:150,sleep:7.5,steps:10000,gymPerWeek:6,water:3};
+const DT={calories:2200,protein:150,sleep:7.5,steps:10000,gymPerWeek:6,water:3,weight:85};
 const DS={units:'metric',weekStart:'mon'};
 const DG=[
   {id:'g1',title:'Get Visible Abs',cat:'body',icon:'🔥',color:'#f97316',current:18,target:10,start:22,unit:'% body fat',dir:'down',deadline:''},
   {id:'g2',title:'Bench Press 100kg',cat:'strength',icon:'💪',color:'#8b5cf6',current:70,target:100,start:60,unit:'kg',dir:'up',deadline:''},
   {id:'g3',title:'Run 5km Non-Stop',cat:'endurance',icon:'🏃',color:'#10b981',current:2,target:5,start:0,unit:'km',dir:'up',deadline:''},
-  {id:'g4',title:'Cut to 82kg',cat:'body',icon:'⚖️',color:'#06b6d4',current:90,target:82,start:95,unit:'kg',dir:'down',deadline:''},
+  {id:'g4',title:'Cut to 82kg',cat:'body',icon:'⚖️',color:'#06b6d4',current:90,target:82,start:95,unit:'kg',dir:'down',deadline:'',linkedMetric:'weight'},
 ];
 
 const loadLogs=()=>ld(LK)||[];
 const saveLogs=l=>sv(LK,l.slice(-120));
-const getTodayLog=logs=>logs.find(l=>l.date===today())||{date:today(),gym:null,calories:null,protein:null,sleep:null,steps:null,energy:null,morningRoutine:null,reading:null,water:null};
+const getTodayLog=logs=>logs.find(l=>l.date===today())||{date:today(),gym:null,calories:null,protein:null,sleep:null,steps:null,energy:null,morningRoutine:null,reading:null,water:null,weight:null};
 const upsert=(logs,log)=>{const i=logs.findIndex(l=>l.date===log.date),n=[...logs];i>=0?n[i]=log:n.push(log);return n.sort((a,b)=>a.date.localeCompare(b.date));};
 const lastN=(logs,n)=>Array.from({length:n},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(n-1-i));return ds(d);}).map(dt=>logs.find(l=>l.date===dt)||null);
 const streakFn=(logs,fn)=>{let s=0;const d=new Date();for(let i=0;i<90;i++){const l=logs.find(x=>x.date===ds(d));if(l&&fn(l))s++;else break;d.setDate(d.getDate()-1);}return s;};
@@ -98,6 +98,21 @@ const SG=s=>s>=80?'rgba(16,185,129,.45)':s>=60?'rgba(139,92,246,.45)':s>=40?'rgb
 const C={gym:{m:'#f97316'},morning:{m:'#06b6d4'},reading:{m:'#10b981'},calories:{m:'#f59e0b'},protein:{m:'#ec4899'},sleep:{m:'#3b82f6'},steps:{m:'#22c55e'},water:{m:'#0ea5e9'},energy:{m:'#eab308'}};
 const IC={w:'#f59e0b',g:'#10b981',b:'#ef4444',i:'#06b6d4'};
 const II={w:'⚠',g:'↑',b:'↓',i:'→'};
+
+function weakestLink(log,t){
+  if(!log)return null;
+  const ms=[
+    log.gym!==null&&{key:'gym',label:'Gym',icon:'🏋️',score:log.gym?100:20,color:C.gym.m,desc:log.gym?'Already done — great!':'Skipped training today'},
+    log.calories!=null&&{key:'calories',label:'Calories',icon:'🔥',score:sCAL(log.calories,t.calories),color:C.calories.m,desc:`${log.calories} vs ${t.calories}kcal target`},
+    log.protein!=null&&{key:'protein',label:'Protein',icon:'🥩',score:sPRO(log.protein,t.protein),color:C.protein.m,desc:`${log.protein}g vs ${t.protein}g target`},
+    log.sleep!=null&&{key:'sleep',label:'Sleep',icon:'😴',score:sSLP(log.sleep,t.sleep),color:C.sleep.m,desc:`${log.sleep}h vs ${t.sleep}h target`},
+    log.steps!=null&&{key:'steps',label:'Steps',icon:'👟',score:sSTP(log.steps,t.steps),color:C.steps.m,desc:`${log.steps} vs ${t.steps} steps`},
+    log.energy!=null&&{key:'energy',label:'Energy',icon:'⚡',score:log.energy*10,color:C.energy.m,desc:`Energy at ${log.energy}/10`},
+    log.water!=null&&{key:'water',label:'Water',icon:'💧',score:Math.min(100,Math.round((log.water/t.water)*100)),color:C.water.m,desc:`${log.water}L vs ${t.water}L target`},
+  ].filter(Boolean);
+  if(ms.length<2)return null;
+  return ms.reduce((mn,m)=>m.score<mn.score?m:mn);
+}
 
 function insights(logs,t){
   const ins=[],r=lastN(logs,14),tod=logs.find(l=>l.date===today());
@@ -147,6 +162,38 @@ function patterns(logs,t){
   else if(rec5.length>=3&&rec5.every(s=>s>=70))items.push({k:'g',m:`${rec5.length}-day elite streak — momentum building`});
   if(!items.length)items.push({k:'i',m:'Log 7+ days to unlock pattern analysis'});
   return items.slice(0,4);
+}
+
+function HeatmapCalendar({logs,tgts}){
+  const [hov,setHov]=useState(null);
+  const cells=Array.from({length:91},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(90-i));const dt=ds(d);const l=logs.find(x=>x.date===dt);const s=l?calcScore(l,tgts):null;return{dt,s,dow:d.getDay()};});
+  const weeks=[];let wk=[];
+  for(let i=0;i<cells[0].dow;i++)wk.push(null);
+  cells.forEach(c=>{wk.push(c);if(wk.length===7){weeks.push(wk);wk=[];}});
+  if(wk.length){while(wk.length<7)wk.push(null);weeks.push(wk);}
+  const sz=11,gp=2;
+  return html`
+    <div style=${{position:'relative',paddingTop:30}}>
+      <div style=${{display:'flex',gap:gp+'px',overflowX:'auto',paddingBottom:2}}>
+        ${weeks.map((wk,wi)=>html`
+          <div key=${wi} style=${{display:'flex',flexDirection:'column',gap:gp+'px',flexShrink:0}}>
+            ${wk.map((c,di)=>{
+              if(!c)return html`<div key=${di} style=${{width:sz,height:sz}}></div>`;
+              const isToday=c.dt===today();
+              const bg=c.s!=null?SC(c.s):'rgba(255,255,255,.07)';
+              return html`<div key=${di} onMouseEnter=${()=>setHov(c)} onMouseLeave=${()=>setHov(null)} style=${{width:sz,height:sz,borderRadius:2,background:bg,opacity:c.s!=null?1:.45,boxShadow:c.s!=null?`0 0 5px ${bg}55`:undefined,outline:isToday?`1.5px solid ${c.s!=null?bg:'#8b5cf6'}`:undefined,cursor:'default',transition:'opacity .1s'}}></div>`;
+            })}
+          </div>`)}
+      </div>
+      ${hov&&html`<div style=${{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',background:'#0d0d1a',border:'1px solid rgba(255,255,255,.14)',borderRadius:8,padding:'5px 12px',fontSize:11,fontWeight:700,color:'#e2e8f0',whiteSpace:'nowrap',pointerEvents:'none',zIndex:10}}>
+        ${hov.dt} · ${hov.s!=null?html`<span style=${{color:SC(hov.s),fontWeight:900}}>${hov.s} pts — ${SL(hov.s)}</span>`:'no log'}
+      </div>`}
+      <div style=${{display:'flex',gap:5,alignItems:'center',marginTop:9,justifyContent:'flex-end'}}>
+        <span style=${{fontSize:9,color:'#334155',fontWeight:600}}>Low</span>
+        ${[['rgba(255,255,255,.07)','none'],['#ef4444','Critical'],['#f59e0b','Sub'],['#8b5cf6','On track'],['#10b981','Optimal']].map(([c,l],i)=>html`<div key=${i} title=${l} style=${{width:10,height:10,borderRadius:2,background:c}}></div>`)}
+        <span style=${{fontSize:9,color:'#334155',fontWeight:600}}>High</span>
+      </div>
+    </div>`;
 }
 
 function Ring({score,size=200}){
@@ -311,6 +358,14 @@ function Dashboard({logs,tgts,onChange}){
   const rdStrk=streakFn(logs,l=>l.reading===true);
   const ins=insights(logs,tgts);
   const pts=patterns(logs,tgts);
+  const last7sc=lastN(logs,7).map(l=>calcScore(l,tgts)).filter(s=>s!=null);
+  const avg7=last7sc.length?Math.round(last7sc.reduce((a,b)=>a+b)/last7sc.length):null;
+  const delta=score!=null&&avg7!=null?score-avg7:null;
+  const rec3=last7sc.slice(-3),prv=last7sc.slice(0,-3);
+  const r3a=rec3.length?rec3.reduce((a,b)=>a+b)/rec3.length:null;
+  const p4a=prv.length?prv.reduce((a,b)=>a+b)/prv.length:null;
+  const vel=r3a!=null&&p4a!=null?(r3a>p4a+2?'up':r3a<p4a-2?'down':'flat'):null;
+  const wl=weakestLink(log,tgts);
   const set=p=>onChange({...log,...p});
   const hr=new Date().getHours();
   const greet=hr<5?'Up late':hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
@@ -358,7 +413,14 @@ function Dashboard({logs,tgts,onChange}){
             </div>
           </div>
         </div>
-        <div style=${{display:'flex',justifyContent:'center'}}><${Ring} score=${score} size=${204}/></div>
+        <div style=${{display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+          <${Ring} score=${score} size=${204}/>
+          ${delta!=null&&html`<div style=${{textAlign:'center',marginTop:4,padding:'7px 14px',borderRadius:10,background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.07)'}}>
+            <span style=${{fontSize:20,fontWeight:900,color:delta>=0?'#10b981':'#ef4444',textShadow:`0 0 14px ${delta>=0?'#10b981':'#ef4444'}88`}}>${delta>=0?'+':''}${delta}</span>
+            <span style=${{fontSize:9,color:'#475569',fontWeight:700,marginLeft:5,textTransform:'uppercase',letterSpacing:'.1em'}}>vs 7d avg</span>
+            ${vel&&html`<span style=${{fontSize:14,marginLeft:6,color:vel==='up'?'#10b981':vel==='down'?'#ef4444':'#8b5cf6'}}>${vel==='up'?'↑↑':vel==='down'?'↓↓':'→'}</span>`}
+          </div>`}
+        </div>
         <div>
           <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>TODAY'S PROTOCOL</div>
           <div style=${{display:'flex',flexDirection:'column',gap:7}}>
@@ -369,6 +431,21 @@ function Dashboard({logs,tgts,onChange}){
         </div>
       </div>
 
+      ${wl&&html`<div class="au card" style=${{padding:'14px 16px',marginBottom:10,borderLeft:`3px solid ${wl.color}`,background:`linear-gradient(to right,${wl.color}0b,transparent)`,animationDelay:'75ms'}}>
+        <div style=${{fontSize:8,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:8}}>⚠ WEAKEST LINK — FOCUS HERE</div>
+        <div style=${{display:'flex',alignItems:'center',gap:13}}>
+          <div style=${{width:44,height:44,borderRadius:12,background:`${wl.color}18`,border:`1px solid ${wl.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:21,flexShrink:0,boxShadow:`0 0 18px ${wl.color}44`}}>${wl.icon}</div>
+          <div style=${{flex:1}}>
+            <div style=${{fontSize:14,fontWeight:900,color:wl.color,marginBottom:3,textShadow:`0 0 16px ${wl.color}66`}}>${wl.label}</div>
+            <div style=${{fontSize:11,color:'#94a3b8'}}>${wl.desc}</div>
+          </div>
+          <div style=${{textAlign:'right',flexShrink:0,padding:'6px 12px',borderRadius:9,background:`${wl.color}12`,border:`1px solid ${wl.color}33`}}>
+            <div style=${{fontSize:26,fontWeight:900,color:wl.color,textShadow:`0 0 18px ${wl.color}77`,letterSpacing:'-1px'}}>${Math.round(wl.score)}</div>
+            <div style=${{fontSize:8,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em'}}>score</div>
+          </div>
+        </div>
+      </div>`}
+
       <div class="au" style=${{marginBottom:12,animationDelay:'80ms'}}>
         <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>LIVE METRICS</div>
         <div style=${{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:8}}>
@@ -377,6 +454,7 @@ function Dashboard({logs,tgts,onChange}){
           <${MetricCard} icon="😴" label="Sleep" val=${log.sleep} tgt=${tgts.sleep} unit="h" color=${C.sleep.m} step=${.5} min=${0} max=${14} onChange=${v=>set({sleep:v})}/>
           <${MetricCard} icon="👟" label="Steps" val=${log.steps} tgt=${tgts.steps} unit="" color=${C.steps.m} step=${500} min=${0} max=${30000} onChange=${v=>set({steps:v})}/>
           <${MetricCard} icon="💧" label="Water" val=${log.water} tgt=${tgts.water} unit="L" color=${C.water.m} step=${.25} min=${0} max=${6} onChange=${v=>set({water:v})}/>
+          <${MetricCard} icon="⚖️" label="Weight" val=${log.weight} tgt=${null} unit="kg" color="#06b6d4" step=${.5} min=${30} max=${250} onChange=${v=>set({weight:v})}/>
           <${EnergyCard} val=${log.energy} onChange=${v=>set({energy:v})}/>
         </div>
       </div>
@@ -481,6 +559,12 @@ function Analytics({logs,tgts}){
         </div>
       </div>
 
+      <div class="card" style=${{padding:'17px',marginBottom:9}}>
+        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:6}}>Score Heatmap — 90 Days</div>
+        <div style=${{fontSize:10,color:'#334155',marginBottom:4}}>Each cell = one day · hover for score</div>
+        <${HeatmapCalendar} logs=${logs} tgts=${tgts}/>
+      </div>
+
       <div class="card" style=${{padding:'17px'}}>
         <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:14}}>14-Day Habit Consistency</div>
         <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'7px 22px'}}>
@@ -583,7 +667,7 @@ const CATS=[
 ];
 const catOf=id=>CATS.find(c=>c.id===id)||CATS[5];
 const gPct=g=>{const{current:cu,target:ta,start:st,dir}=g;if(dir==='up'){if(ta===st)return 100;return Math.min(100,Math.max(0,Math.round((cu-st)/(ta-st)*100)));}else{if(ta===st)return 100;return Math.min(100,Math.max(0,Math.round((st-cu)/(st-ta)*100)));}};
-const newG=()=>({id:Date.now().toString(),title:'',cat:'body',icon:'🎯',color:'#8b5cf6',current:0,target:100,start:0,unit:'',dir:'up',deadline:''});
+const newG=()=>({id:Date.now().toString(),title:'',cat:'body',icon:'🎯',color:'#8b5cf6',current:0,target:100,start:0,unit:'',dir:'up',deadline:'',linkedMetric:'none'});
 
 function Goals({goals,setGoals}){
   const [showAdd,setShowAdd]=useState(false);
@@ -679,6 +763,19 @@ function Goals({goals,setGoals}){
                   <input type="date" class="inp" value=${form.deadline||''} onChange=${e=>ff('deadline',e.target.value)} style=${{colorScheme:'dark'}}/>
                 </div>
               </div>
+              <div>
+                <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Auto-Track From Daily Log</div>
+                <select class="inp" value=${form.linkedMetric||'none'} onChange=${e=>ff('linkedMetric',e.target.value)}>
+                  <option value="none">None (update manually)</option>
+                  <option value="weight">⚖️ Weight (kg)</option>
+                  <option value="steps">👟 Steps</option>
+                  <option value="sleep">😴 Sleep (h)</option>
+                  <option value="protein">🥩 Protein (g)</option>
+                  <option value="calories">🔥 Calories (kcal)</option>
+                  <option value="water">💧 Water (L)</option>
+                </select>
+                ${form.linkedMetric&&form.linkedMetric!=='none'&&html`<div style=${{fontSize:9.5,color:'#10b981',marginTop:5,fontWeight:600}}>✓ Current value auto-syncs when you log</div>`}
+              </div>
               <div style=${{display:'flex',gap:8,marginTop:4}}>
                 <button class="btnp" style=${{flex:1}} onClick=${save}>${editId?'Update':'Add Goal'}</button>
                 <button onClick=${()=>{setShowAdd(false);setEditId(null);}} style=${{padding:'10px 18px',borderRadius:9,border:'1px solid rgba(255,255,255,.08)',background:'transparent',color:'#64748b',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Cancel</button>
@@ -753,7 +850,15 @@ function Settings({tgts,setTgts,settings,setSettings}){
 function App(){
   const [logs,setLogs]=useState([]),[tgts,setTgts]=useState(DT),[goals,setGoals]=useState(DG),[settings,setSettings]=useState(DS),[page,setPage]=useState('dashboard');
   useEffect(()=>{setLogs(loadLogs());setTgts({...DT,...(ld(TK)||{})});setGoals(ld(GK)||DG);setSettings({...DS,...(ld(SK)||{})});},[]);
-  const onChange=up=>{const n=upsert(logs,up);setLogs(n);saveLogs(n);};
+  const onChange=up=>{
+    const n=upsert(logs,up);setLogs(n);saveLogs(n);
+    const upG=goals.map(g=>{
+      if(!g.linkedMetric||g.linkedMetric==='none')return g;
+      const rec=[...n].filter(l=>l[g.linkedMetric]!=null).sort((a,b)=>b.date.localeCompare(a.date))[0];
+      return rec?{...g,current:rec[g.linkedMetric]}:g;
+    });
+    if(upG.some((g,i)=>g.current!==goals[i].current)){setGoals(upG);sv(GK,upG);}
+  };
   const saveGoals=g=>{setGoals(g);sv(GK,g);};
   const saveSettings=s=>{setSettings(s);sv(SK,s);};
   const saveTgts=t=>{setTgts(t);sv(TK,t);};
