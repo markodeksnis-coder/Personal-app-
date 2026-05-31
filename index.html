@@ -8,40 +8,41 @@
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body,#root{height:100%}
-    body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:#05050a;color:#f1f5f9;overflow:hidden}
+    body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:#050508;color:#f1f5f9;overflow:hidden}
     input[type=number]{-moz-appearance:textfield}
     input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
-    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar{width:3px}
     ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:rgba(139,92,246,.5);border-radius:2px}
-    @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+    ::-webkit-scrollbar-thumb{background:rgba(139,92,246,.28);border-radius:2px}
+    @keyframes up{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.1}}
     @keyframes bar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-    @keyframes pop{from{opacity:0;transform:scale(.85) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    @keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
     @keyframes fadein{from{opacity:0}to{opacity:1}}
-    .au{animation:up .45s cubic-bezier(.16,1,.3,1) both}
-    .ac{animation:pop .7s cubic-bezier(.34,1.56,.64,1) both}
-    .gp{animation:pulse 3s ease-in-out infinite}
-    .fi{animation:fadein .2s ease both}
-    .card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:14px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:border-color .2s,background .2s}
-    .card:hover{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.045)}
-    .nav{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:9px;cursor:pointer;color:#475569;font-size:13px;font-weight:600;transition:all .15s;border:1px solid transparent;user-select:none}
-    .nav:hover{background:rgba(255,255,255,.05);color:#94a3b8}
-    .active{background:rgba(139,92,246,.15)!important;color:#c4b5fd!important;border-color:rgba(139,92,246,.3)!important}
-    .trk{height:5px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
-    .fil{height:100%;border-radius:4px;transform-origin:left;animation:bar 1s cubic-bezier(.4,0,.2,1) both}
-    .bsm{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#64748b;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s;flex-shrink:0}
-    .bsm:hover{border-color:rgba(139,92,246,.4);color:#c4b5fd;background:rgba(139,92,246,.1)}
-    .tag{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.02em}
-    .inp{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:8px;color:#f1f5f9;padding:8px 12px;font-size:13px;outline:none;transition:border-color .15s;width:100%;font-family:inherit}
-    .inp:focus{border-color:rgba(139,92,246,.5);box-shadow:0 0 0 2px rgba(139,92,246,.1)}
+    .au{animation:up .32s cubic-bezier(.16,1,.3,1) both}
+    .ac{animation:pop .4s cubic-bezier(.34,1.56,.64,1) both}
+    .gp{animation:pulse 4s ease-in-out infinite}
+    .fi{animation:fadein .18s ease both}
+    .card{background:#0b0b14;border:1px solid rgba(255,255,255,.055);border-radius:12px;transition:border-color .2s}
+    .card:hover{border-color:rgba(255,255,255,.1)}
+    .nav{display:flex;align-items:center;padding:8px 12px;border-radius:8px;cursor:pointer;color:#3a4a5c;font-size:13px;font-weight:500;transition:all .15s;user-select:none;letter-spacing:-.01em}
+    .nav:hover{color:#8896a8;background:rgba(255,255,255,.04)}
+    .active{background:rgba(139,92,246,.1)!important;color:#a78bfa!important}
+    .trk{height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden}
+    .fil{height:100%;border-radius:2px;transform-origin:left;animation:bar .7s cubic-bezier(.4,0,.2,1) both}
+    .bsm{width:26px;height:26px;border-radius:6px;border:1px solid rgba(255,255,255,.07);background:transparent;color:#3a4a5c;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:all .15s;flex-shrink:0;font-family:inherit}
+    .bsm:hover{border-color:rgba(139,92,246,.3);color:#a78bfa;background:rgba(139,92,246,.07)}
+    .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.01em}
+    .inp{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;color:#f1f5f9;padding:8px 12px;font-size:13px;outline:none;transition:all .15s;width:100%;font-family:inherit}
+    .inp:focus{border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.04)}
     .inp option{background:#0d0d1a}
-    .btnp{padding:10px 22px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:800;background:linear-gradient(135deg,#8b5cf6,#06b6d4);color:white;box-shadow:0 4px 20px rgba(139,92,246,.45);transition:all .2s;font-family:inherit}
-    .btnp:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(139,92,246,.6)}
-    .btnd{padding:9px 16px;border-radius:8px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
-    .btnd:hover{background:rgba(239,68,68,.15)}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadein .15s ease}
-    .modal{background:#0b0b18;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:28px;width:440px;max-width:92vw;max-height:90vh;overflow-y:auto}
+    .btnp{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;background:#8b5cf6;color:white;transition:all .18s;font-family:inherit;letter-spacing:-.01em}
+    .btnp:hover{background:#7c3aed;transform:translateY(-1px);box-shadow:0 4px 16px rgba(139,92,246,.35)}
+    .btnd{padding:8px 14px;border-radius:7px;border:1px solid rgba(239,68,68,.2);background:transparent;color:#f87171;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+    .btnd:hover{background:rgba(239,68,68,.07)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(16px);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadein .15s ease}
+    .modal{background:#0e0e1c;border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:28px;width:440px;max-width:92vw;max-height:90vh;overflow-y:auto}
+    .lbl{font-size:10px;font-weight:600;color:#3a4a5c;text-transform:uppercase;letter-spacing:.08em}
   </style>
 </head>
 <body>
@@ -183,7 +184,7 @@ function HeatmapCalendar({logs,tgts}){
               const bg=c.s!=null?SC(c.s):'rgba(255,255,255,.07)';
               return html`<div key=${di} onMouseEnter=${()=>setHov(c)} onMouseLeave=${()=>setHov(null)} style=${{width:sz,height:sz,borderRadius:2,background:bg,opacity:c.s!=null?1:.45,boxShadow:c.s!=null?`0 0 5px ${bg}55`:undefined,outline:isToday?`1.5px solid ${c.s!=null?bg:'#8b5cf6'}`:undefined,cursor:'default',transition:'opacity .1s'}}></div>`;
             })}
-          </div>`)}'
+          </div>`)}
       </div>
       ${hov&&html`<div style=${{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',background:'#0d0d1a',border:'1px solid rgba(255,255,255,.14)',borderRadius:8,padding:'5px 12px',fontSize:11,fontWeight:700,color:'#e2e8f0',whiteSpace:'nowrap',pointerEvents:'none',zIndex:10}}>
         ${hov.dt} · ${hov.s!=null?html`<span style=${{color:SC(hov.s),fontWeight:900}}>${hov.s} pts — ${SL(hov.s)}</span>`:'no log'}
@@ -204,19 +205,18 @@ function Ring({score,size=200}){
   const col=score!=null?SC(score):'#1e293b';
   return html`
     <div style=${{position:'relative',width:size,height:size,display:'inline-flex',alignItems:'center',justifyContent:'center'}}>
-      <div class="gp" style=${{position:'absolute',inset:-30,borderRadius:'50%',background:score!=null?`radial-gradient(circle,${SG(score)} 0%,transparent 65%)`:'transparent'}}></div>
+      <div class="gp" style=${{position:'absolute',inset:-30,borderRadius:'50%',background:score!=null?`radial-gradient(circle,${SC(score)}1a 0%,transparent 65%)`:'transparent'}}></div>
       <svg width=${size} height=${size} style=${{transform:'rotate(-90deg)',position:'absolute',zIndex:1}}>
         <circle cx=${size/2} cy=${size/2} r=${r} fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="11"/>
         ${score!=null&&html`<circle cx=${size/2} cy=${size/2} r=${r} fill="none" stroke=${col} strokeWidth="11" strokeLinecap="round"
           strokeDasharray=${circ+' '+circ} strokeDashoffset=${off}
-          style=${{transition:'stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)',filter:`drop-shadow(0 0 18px ${col}) drop-shadow(0 0 36px ${col}66)`}}/>`}
+          style=${{transition:'stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)',filter:`drop-shadow(0 0 10px ${col}bb)`}}/>`}
         ${Array.from({length:36},(_,i)=>{const a=(i/36)*2*Math.PI,ri=r-18,ro=r-13;
-          return html`<line key=${i} x1=${(size/2+Math.cos(a)*ri).toFixed(1)} y1=${(size/2+Math.sin(a)*ri).toFixed(1)} x2=${(size/2+Math.cos(a)*ro).toFixed(1)} y2=${(size/2+Math.sin(a)*ro).toFixed(1)} stroke="rgba(255,255,255,.05)" strokeWidth="1"/>`;})} 
-      </svg>
+          return html`<line key=${i} x1=${(size/2+Math.cos(a)*ri).toFixed(1)} y1=${(size/2+Math.sin(a)*ri).toFixed(1)} x2=${(size/2+Math.cos(a)*ro).toFixed(1)} y2=${(size/2+Math.sin(a)*ro).toFixed(1)} stroke="rgba(255,255,255,.05)" strokeWidth="1"/>`;})}      </svg>
       <div style=${{position:'absolute',textAlign:'center',zIndex:2}}>
-        <div style=${{fontSize:7.5,color:'#334155',fontWeight:800,textTransform:'uppercase',letterSpacing:'.22em',marginBottom:4}}>SYSTEM STATUS</div>
-        <div class="ac" style=${{fontSize:score!=null?52:26,fontWeight:900,letterSpacing:'-2.5px',lineHeight:1,color:score!=null?col:'#1e293b',textShadow:score!=null?`0 0 36px ${col}cc`:'none'}}>${score!=null?score:'—'}</div>
-        ${score!=null&&html`<div style=${{fontSize:8,fontWeight:800,letterSpacing:'.2em',color:col,marginTop:7,textTransform:'uppercase',textShadow:`0 0 14px ${col}99`}}>${SL(score)}</div>`}
+        <div class="lbl" style=${{marginBottom:4,letterSpacing:'.18em'}}>System Status</div>
+        <div class="ac" style=${{fontSize:score!=null?52:26,fontWeight:900,letterSpacing:'-2.5px',lineHeight:1,color:score!=null?col:'#1e293b'}}>${score!=null?score:'—'}</div>
+        ${score!=null&&html`<div style=${{fontSize:9,fontWeight:700,letterSpacing:'.16em',color:col,marginTop:7,textTransform:'uppercase',opacity:.8}}>${SL(score)}</div>`}
       </div>
     </div>`;
 }
@@ -238,7 +238,7 @@ function Chart({data,color,h=70}){
       <defs><linearGradient id=${gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor=${color} stopOpacity="0.32"/><stop offset="100%" stopColor=${color} stopOpacity="0"/></linearGradient></defs>
       ${area&&html`<path d=${area} fill=${'url(#'+gid+')'}/>`}
       ${path&&html`<path d=${path} fill="none" stroke=${color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style=${{filter:`drop-shadow(0 0 5px ${color}) drop-shadow(0 0 2px ${color})`}}/>`}
-      ${pts.slice(-1).map((p,i)=>html`<circle key=${i} cx=${p.x.toFixed(1)} cy=${p.y.toFixed(1)} r="3.5" fill=${color} style=${{filter:`drop-shadow(0 0 6px ${color})`}}/>`)} 
+      ${pts.slice(-1).map((p,i)=>html`<circle key=${i} cx=${p.x.toFixed(1)} cy=${p.y.toFixed(1)} r="3.5" fill=${color} style=${{filter:`drop-shadow(0 0 6px ${color})`}}/>`)}
     </svg>`;
 }
 
@@ -268,17 +268,16 @@ function DowBar({logs,tgts}){
 
 function TaskCard({icon,label,sub,color,done,onToggle}){
   return html`
-    <div onClick=${onToggle} style=${{border:`1px solid ${done?color+'55':'rgba(255,255,255,.08)'}`,borderRadius:13,padding:'14px 16px',cursor:'pointer',background:done?`linear-gradient(135deg,${color}16,${color}07)`:'rgba(255,255,255,.02)',transition:'all .2s',position:'relative',overflow:'hidden'}}>
-      ${done&&html`<div style=${{position:'absolute',inset:0,background:`radial-gradient(ellipse at top left,${color}1c,transparent 65%)`,pointerEvents:'none'}}></div>`}
-      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',position:'relative'}}>
-        <div style=${{display:'flex',alignItems:'center',gap:11}}>
-          <div style=${{width:40,height:40,borderRadius:11,background:done?`${color}22`:'rgba(255,255,255,.05)',border:`1px solid ${done?color+'55':'rgba(255,255,255,.07)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:19,boxShadow:done?`0 0 22px ${color}55`:undefined,transition:'all .2s'}}>${icon}</div>
+    <div onClick=${onToggle} style=${{border:`1px solid ${done?'rgba(139,92,246,.22)':'rgba(255,255,255,.055)'}`,borderRadius:10,padding:'12px 14px',cursor:'pointer',background:done?'rgba(139,92,246,.06)':'transparent',transition:'all .18s'}}>
+      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div style=${{display:'flex',alignItems:'center',gap:10}}>
+          <div style=${{width:34,height:34,borderRadius:9,background:done?'rgba(139,92,246,.14)':'rgba(255,255,255,.04)',border:`1px solid ${done?'rgba(139,92,246,.28)':'rgba(255,255,255,.06)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,transition:'all .18s'}}>${icon}</div>
           <div>
-            <div style=${{fontSize:13,fontWeight:800,color:done?color:'#e2e8f0',transition:'color .2s',marginBottom:2,textShadow:done?`0 0 18px ${color}66`:undefined}}>${label}</div>
-            <div style=${{fontSize:10,color:done?color+'77':'#334155'}}>${sub}</div>
+            <div style=${{fontSize:13,fontWeight:600,color:done?'#a78bfa':'#c8d5e5',transition:'color .18s',marginBottom:1,letterSpacing:'-.01em'}}>${label}</div>
+            <div style=${{fontSize:10,color:'#2d3d4e'}}>${sub}</div>
           </div>
         </div>
-        <div style=${{width:23,height:23,borderRadius:'50%',border:`2px solid ${done?color:'rgba(255,255,255,.12)'}`,background:done?color:'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'white',fontWeight:900,transition:'all .25s',boxShadow:done?`0 0 14px ${color}77`:undefined}}>${done?'✓':''}</div>
+        <div style=${{width:18,height:18,borderRadius:'50%',border:`1.5px solid ${done?'#8b5cf6':'rgba(255,255,255,.1)'}`,background:done?'#8b5cf6':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,color:'white',fontWeight:700,transition:'all .18s',flexShrink:0}}>${done?'✓':''}</div>
       </div>
     </div>`;
 }
@@ -286,67 +285,67 @@ function TaskCard({icon,label,sub,color,done,onToggle}){
 function MetricCard({icon,label,val,tgt,unit,color,step,min,max,inv,onChange}){
   const pct=tgt&&val!=null?Math.min(100,Math.round((val/tgt)*100)):null;
   const hit=inv?(val!=null&&val<=tgt):(pct!=null&&pct>=100);
-  const c=hit?'#10b981':color;
+  const sc=val==null?null:hit?'#10b981':(pct!=null&&pct>=75)?'#8b5cf6':(pct!=null&&pct>=45)?'#f59e0b':'#ef4444';
+  const c=sc||(tgt==null?'#8b5cf6':'#8b5cf6');
   const dv=val!=null?(Number.isInteger(val)?val:parseFloat(val.toFixed(1))):null;
+  const base=val??tgt??min;
   return html`
-    <div class="card" style=${{padding:'14px 14px 12px',borderLeft:`3px solid ${val!=null?c+'88':'rgba(255,255,255,.05)'}`,transition:'border-color .3s'}}>
-      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
-        <div style=${{display:'flex',alignItems:'center',gap:5}}>
-          <span style=${{fontSize:14}}>${icon}</span>
-          <span style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em'}}>${label}</span>
+    <div class="card" style=${{padding:'14px 14px 12px'}}>
+      <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:9}}>
+        <div style=${{display:'flex',alignItems:'center',gap:6}}>
+          <span style=${{fontSize:13}}>${icon}</span>
+          <span class="lbl">${label}</span>
         </div>
-        ${hit&&html`<div style=${{width:7,height:7,borderRadius:'50%',background:c,boxShadow:`0 0 9px ${c}`}}></div>`}
+        ${hit&&val!=null&&html`<div style=${{width:5,height:5,borderRadius:'50%',background:'#10b981'}}></div>`}
       </div>
       <div style=${{display:'flex',alignItems:'baseline',gap:4,marginBottom:10}}>
-        <span style=${{fontSize:30,fontWeight:900,letterSpacing:'-1px',color:val!=null?c:'#1e293b',textShadow:val!=null?`0 0 24px ${c}88`:undefined,transition:'color .3s,text-shadow .3s'}}>${dv!=null?dv:'—'}</span>
-        ${unit&&html`<span style=${{fontSize:11,color:'#64748b',fontWeight:600}}>${unit}</span>`}
-        ${tgt&&val!=null&&html`<span style=${{fontSize:9,color:'#334155',marginLeft:3}}>/ ${tgt}</span>`}
+        <span style=${{fontSize:28,fontWeight:800,letterSpacing:'-1px',color:val!=null?c:'#1e293b',transition:'color .25s'}}>${dv??'—'}</span>
+        ${unit&&html`<span style=${{fontSize:11,color:'#2d3d4e',fontWeight:500,marginLeft:2}}>${unit}</span>`}
+        ${tgt&&val!=null&&html`<span style=${{fontSize:10,color:'#2d3d4e',marginLeft:'auto'}}>${pct}%</span>`}
       </div>
-      <div style=${{display:'flex',alignItems:'center',gap:5}}>
-        <button class="bsm" onClick=${e=>{e.stopPropagation();onChange(Math.max(min,(val??tgt)-step));}}>−</button>
-        <div class="trk" style=${{flex:1}}><div class="fil" style=${{width:`${pct||0}%`,background:c,boxShadow:`0 0 7px ${c}77`}}></div></div>
-        <button class="bsm" onClick=${e=>{e.stopPropagation();onChange(Math.min(max,(val??tgt)+step));}}>+</button>
+      <div style=${{display:'flex',alignItems:'center',gap:6}}>
+        <button class="bsm" onClick=${e=>{e.stopPropagation();onChange(Math.max(min,base-step));}}>−</button>
+        <div class="trk" style=${{flex:1}}><div class="fil" style=${{width:`${pct||0}%`,background:c}}></div></div>
+        <button class="bsm" onClick=${e=>{e.stopPropagation();onChange(Math.min(max,base+step));}}>+</button>
       </div>
     </div>`;
 }
 
 function EnergyCard({val,onChange}){
-  const c=val!=null?(val>=7?'#10b981':val>=4?'#f59e0b':'#ef4444'):C.energy.m;
+  const c=val!=null?(val>=7?'#10b981':val>=4?'#f59e0b':'#ef4444'):'#8b5cf6';
   return html`
-    <div class="card" style=${{padding:'14px 14px 12px',borderLeft:`3px solid ${val!=null?c+'88':'rgba(255,255,255,.05)'}`,transition:'border-color .3s'}}>
-      <div style=${{display:'flex',alignItems:'center',gap:5,marginBottom:8}}>
-        <span style=${{fontSize:14}}>⚡</span>
-        <span style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em'}}>Energy</span>
+    <div class="card" style=${{padding:'14px 14px 12px'}}>
+      <div style=${{display:'flex',alignItems:'center',gap:6,marginBottom:9}}>
+        <span style=${{fontSize:13}}>⚡</span>
+        <span class="lbl">Energy</span>
       </div>
-      <div style=${{fontSize:30,fontWeight:900,letterSpacing:'-1px',color:val!=null?c:'#1e293b',marginBottom:10,textShadow:val!=null?`0 0 24px ${c}88`:undefined}}>${val!=null?`${val}/10`:'—'}</div>
-      <div style=${{display:'flex',gap:3}}>${Array.from({length:10},(_,i)=>html`<div key=${i} onClick=${()=>onChange(i+1)} style=${{flex:1,height:16,borderRadius:3,cursor:'pointer',transition:'all .12s',background:val!=null&&i<val?(i<3?'#ef4444':i<6?'#f59e0b':'#10b981'):'rgba(255,255,255,.05)',boxShadow:val!=null&&i<val?`0 0 5px ${i<3?'#ef4444':i<6?'#f59e0b':'#10b981'}66`:undefined}}></div>`)}</div>
+      <div style=${{fontSize:28,fontWeight:800,letterSpacing:'-1px',color:val!=null?c:'#1e293b',marginBottom:10,transition:'color .25s'}}>${val!=null?`${val}/10`:'—'}</div>
+      <div style=${{display:'flex',gap:2.5}}>${Array.from({length:10},(_,i)=>html`<div key=${i} onClick=${()=>onChange(i+1)} style=${{flex:1,height:13,borderRadius:2,cursor:'pointer',transition:'all .1s',background:val!=null&&i<val?(i<3?'#ef4444':i<6?'#f59e0b':'#10b981'):'rgba(255,255,255,.05)'}}></div>`)}</div>
     </div>`;
 }
 
 function Sidebar({page,setPage,score}){
   const col=score!=null?SC(score):'#8b5cf6';
-  const nav=[['dashboard','⊞','Dashboard'],['analytics','↗','Analytics'],['reviews','◈','Reviews'],['goals','◎','Goals'],['settings','⚙','Settings']];
+  const nav=[['dashboard','Dashboard'],['analytics','Analytics'],['reviews','Reviews'],['goals','Goals'],['settings','Settings']];
   return html`
-    <div style=${{width:214,background:'rgba(0,0,0,.62)',borderRight:'1px solid rgba(255,255,255,.07)',display:'flex',flexDirection:'column',flexShrink:0,backdropFilter:'blur(28px)'}}>
-      <div style=${{padding:'18px 16px 13px',borderBottom:'1px solid rgba(255,255,255,.05)'}}>
-        <div style=${{display:'flex',alignItems:'center',gap:10}}>
-          <div style=${{width:36,height:36,borderRadius:10,background:'linear-gradient(135deg,#8b5cf6,#06b6d4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,boxShadow:'0 4px 22px rgba(139,92,246,.65)'}}>⚡</div>
-          <div><div style=${{fontSize:15,fontWeight:900,letterSpacing:'-.4px'}}>Performance</div><div style=${{fontSize:9,color:'#475569',fontWeight:700,letterSpacing:'.16em',textTransform:'uppercase'}}>OS v2</div></div>
+    <div style=${{width:192,background:'#07070f',borderRight:'1px solid rgba(255,255,255,.05)',display:'flex',flexDirection:'column',flexShrink:0}}>
+      <div style=${{padding:'22px 16px 18px'}}>
+        <div style=${{display:'flex',alignItems:'center',gap:9}}>
+          <div style=${{width:28,height:28,borderRadius:7,background:'#8b5cf6',display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,flexShrink:0}}>⚡</div>
+          <span style=${{fontSize:13,fontWeight:700,color:'#e2e8f0',letterSpacing:'-.3px',lineHeight:1}}>Performance OS</span>
         </div>
       </div>
-      <div style=${{padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
-        <div style=${{background:'rgba(255,255,255,.03)',borderRadius:11,padding:'12px 13px',border:`1px solid ${col}44`}}>
-          <div style=${{fontSize:8.5,color:'#334155',textTransform:'uppercase',letterSpacing:'.14em',marginBottom:4}}>Today's Score</div>
-          <div style=${{fontSize:34,fontWeight:900,letterSpacing:'-1.5px',color:col,textShadow:`0 0 28px ${col}88`}}>${score!=null?score:'—'}</div>
-          ${score!=null&&html`<div style=${{fontSize:8,color:col,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',marginTop:3,textShadow:`0 0 12px ${col}66`}}>${SL(score)}</div>`}
-        </div>
-      </div>
-      <nav style=${{padding:'8px',flex:1}}>${nav.map(([id,ico,lbl])=>html`
-        <div key=${id} class=${`nav${page===id?' active':''}`} onClick=${()=>setPage(id)}>
-          <span style=${{fontSize:14,lineHeight:1}}>${ico}</span><span>${lbl}</span>
-        </div>`)}
+      <div style=${{height:1,background:'rgba(255,255,255,.05)',margin:'0 16px'}}></div>
+      <nav style=${{padding:'10px 8px',flex:1}}>
+        ${nav.map(([id,lbl])=>html`
+          <div key=${id} class=${`nav${page===id?' active':''}`} onClick=${()=>setPage(id)}>${lbl}</div>`)}
       </nav>
-      <div style=${{padding:'12px 16px',borderTop:'1px solid rgba(255,255,255,.04)'}}><div style=${{fontSize:8,color:'#1e293b',textAlign:'center',letterSpacing:'.1em',textTransform:'uppercase'}}>Performance OS v2.0</div></div>
+      <div style=${{height:1,background:'rgba(255,255,255,.05)',margin:'0 16px'}}></div>
+      <div style=${{padding:'14px 16px 20px'}}>
+        <div class="lbl" style=${{marginBottom:7}}>Today's Score</div>
+        <div style=${{fontSize:38,fontWeight:800,color:col,letterSpacing:'-2px',lineHeight:1}}>${score??'—'}</div>
+        ${score!=null&&html`<div style=${{fontSize:10,fontWeight:600,color:col,opacity:.55,marginTop:5,textTransform:'uppercase',letterSpacing:'.06em'}}>${SL(score)}</div>`}
+      </div>
     </div>`;
 }
 
@@ -383,52 +382,52 @@ function Dashboard({logs,tgts,onChange}){
     <div style=${{padding:'16px 20px',height:'100%',overflowY:'auto'}}>
       <div class="au" style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
         <div>
-          <div style=${{fontSize:9.5,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:'.14em',marginBottom:3}}>${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+          <div style=${{fontSize:10,color:'#475569',fontWeight:600,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:3}}>${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
           <div style=${{fontSize:23,fontWeight:900,letterSpacing:'-.5px'}}>${greet}</div>
         </div>
         <div style=${{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'flex-end'}}>
-          ${gymStrk>0&&html`<div class="tag" style=${{background:'rgba(249,115,22,.13)',border:'1px solid rgba(249,115,22,.35)',color:'#fb923c'}}>🔥 ${gymStrk}d</div>`}
-          ${amStrk>0&&html`<div class="tag" style=${{background:'rgba(6,182,212,.13)',border:'1px solid rgba(6,182,212,.35)',color:'#22d3ee'}}>🌅 ${amStrk}d</div>`}
-          ${rdStrk>0&&html`<div class="tag" style=${{background:'rgba(16,185,129,.13)',border:'1px solid rgba(16,185,129,.35)',color:'#34d399'}}>📖 ${rdStrk}d</div>`}
-          ${score!=null&&html`<div class="tag" style=${{background:`${SC(score)}1c`,border:`1px solid ${SC(score)}44`,color:SC(score),textShadow:`0 0 12px ${SC(score)}66`}}>${SL(score)}</div>`}
+          ${gymStrk>0&&html`<div class="tag" style=${{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',color:'#8896a8'}}>🔥 ${gymStrk}d gym</div>`}
+          ${amStrk>0&&html`<div class="tag" style=${{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',color:'#8896a8'}}>🌅 ${amStrk}d AM</div>`}
+          ${rdStrk>0&&html`<div class="tag" style=${{background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.07)',color:'#8896a8'}}>📖 ${rdStrk}d read</div>`}
+          ${score!=null&&html`<div class="tag" style=${{background:`${SC(score)}14`,border:`1px solid ${SC(score)}33`,color:SC(score)}}>${SL(score)}</div>`}
         </div>
       </div>
 
-      <div class="au" style=${{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:7,marginBottom:12,animationDelay:'30ms'}}>
-        ${[[total,'Days Logged','total','#8b5cf6'],[avg30,'30-Day Avg','avg',SC(avg30||50)],[best,'Best Score','pts','#f59e0b'],[gymStrk,'Gym Streak','days',C.gym.m],[amStrk,'AM Routine','days',C.morning.m],[rdStrk,'Reading','days',C.reading.m]].map(([v,l,u,c])=>html`
-          <div class="card" style=${{padding:'11px 12px',borderTop:`2px solid ${c}77`}}>
-            <div style=${{fontSize:7.5,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:'.09em',marginBottom:4}}>${l}</div>
-            <div style=${{fontSize:24,fontWeight:900,color:v!=null?c:'#1e293b',letterSpacing:'-.5px',textShadow:v!=null?`0 0 20px ${c}66`:undefined}}>${v??'—'}</div>
-            <div style=${{fontSize:8,color:'#334155',marginTop:1,fontWeight:600}}>${u}</div>
+      <div class="au" style=${{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:6,marginBottom:12,animationDelay:'30ms'}}>
+        ${[[total,'Days Logged','total'],[avg30,'30d Avg','avg'],[best,'Best Score','pts'],[gymStrk,'Gym Streak','days'],[amStrk,'AM Routine','days'],[rdStrk,'Reading','days']].map(([v,l,u],idx)=>html`
+          <div class="card" style=${{padding:'12px 12px 10px'}}>
+            <div class="lbl" style=${{marginBottom:5}}>${l}</div>
+            <div style=${{fontSize:22,fontWeight:800,color:v!=null?'#e2e8f0':'#1e293b',letterSpacing:'-.5px'}}>${v??'—'}</div>
+            <div style=${{fontSize:10,color:'#2d3d4e',marginTop:2}}>${u}</div>
           </div>`)}
       </div>
 
       <div class="au" style=${{display:'grid',gridTemplateColumns:'1fr 204px 1fr',gap:12,marginBottom:12,alignItems:'start',animationDelay:'60ms'}}>
         <div style=${{display:'flex',flexDirection:'column',gap:8}}>
-          <div class="card" style=${{padding:'13px 15px'}}>
-            <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>7-Day Trend</div>
+          <div class="card" style=${{padding:'14px 15px'}}>
+            <div class="lbl" style=${{marginBottom:10}}>7-Day Trend</div>
             <${Chart} data=${last7} color="#8b5cf6" h=${68}/>
           </div>
-          <div class="card" style=${{padding:'13px 15px'}}>
-            <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>AI INSIGHTS</div>
-            <div style=${{display:'flex',flexDirection:'column',gap:5}}>
+          <div class="card" style=${{padding:'14px 15px'}}>
+            <div class="lbl" style=${{marginBottom:10}}>Insights</div>
+            <div style=${{display:'flex',flexDirection:'column',gap:6}}>
               ${ins.map((x,i)=>html`
-                <div key=${i} style=${{padding:'8px 11px',borderRadius:8,background:`${IC[x.k]}0c`,borderLeft:`2px solid ${IC[x.k]}`,fontSize:10.5,color:'#cbd5e1',lineHeight:1.55}}>
-                  <span style=${{color:IC[x.k],fontWeight:800,marginRight:5}}>${II[x.k]}</span>${x.m}
+                <div key=${i} style=${{padding:'8px 10px',borderRadius:7,background:'rgba(255,255,255,.025)',borderLeft:`2px solid ${IC[x.k]}`,fontSize:11,color:'#8896a8',lineHeight:1.5}}>
+                  <span style=${{color:IC[x.k],fontWeight:600,marginRight:5}}>${II[x.k]}</span>${x.m}
                 </div>`)}
             </div>
           </div>
         </div>
         <div style=${{display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
           <${Ring} score=${score} size=${204}/>
-          ${delta!=null&&html`<div style=${{textAlign:'center',marginTop:4,padding:'7px 14px',borderRadius:10,background:'rgba(255,255,255,.03)',border:'1px solid rgba(255,255,255,.07)'}}>
-            <span style=${{fontSize:20,fontWeight:900,color:delta>=0?'#10b981':'#ef4444',textShadow:`0 0 14px ${delta>=0?'#10b981':'#ef4444'}88`}}>${delta>=0?'+':''}${delta}</span>
-            <span style=${{fontSize:9,color:'#475569',fontWeight:700,marginLeft:5,textTransform:'uppercase',letterSpacing:'.1em'}}>vs 7d avg</span>
-            ${vel&&html`<span style=${{fontSize:14,marginLeft:6,color:vel==='up'?'#10b981':vel==='down'?'#ef4444':'#8b5cf6'}}>${vel==='up'?'↑↑':vel==='down'?'↓↓':'→'}</span>`}
+          ${delta!=null&&html`<div style=${{textAlign:'center',marginTop:6,padding:'6px 14px',borderRadius:8,background:'rgba(255,255,255,.025)',border:'1px solid rgba(255,255,255,.06)'}}>
+            <span style=${{fontSize:18,fontWeight:700,color:delta>=0?'#10b981':'#ef4444'}}>${delta>=0?'+':''}${delta}</span>
+            <span style=${{fontSize:10,color:'#3a4a5c',fontWeight:500,marginLeft:5}}>vs 7d avg</span>
+            ${vel&&html`<span style=${{fontSize:12,marginLeft:5,color:vel==='up'?'#10b981':vel==='down'?'#ef4444':'#8b5cf6'}}>${vel==='up'?'↑↑':vel==='down'?'↓↓':'→'}</span>`}
           </div>`}
         </div>
         <div>
-          <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>TODAY'S PROTOCOL</div>
+          <div class="lbl" style=${{marginBottom:10}}>Today's Protocol</div>
           <div style=${{display:'flex',flexDirection:'column',gap:7}}>
             <${TaskCard} icon="🏋️" label="Gym Session" sub="Strength training" color=${C.gym.m} done=${log.gym===true} onToggle=${()=>set({gym:log.gym!==true})}/>
             <${TaskCard} icon="🌅" label="Morning Routine" sub="Non-negotiable" color=${C.morning.m} done=${log.morningRoutine===true} onToggle=${()=>set({morningRoutine:log.morningRoutine!==true})}/>
@@ -437,23 +436,23 @@ function Dashboard({logs,tgts,onChange}){
         </div>
       </div>
 
-      ${wl&&html`<div class="au card" style=${{padding:'14px 16px',marginBottom:10,borderLeft:`3px solid ${wl.color}`,background:`linear-gradient(to right,${wl.color}0b,transparent)`,animationDelay:'75ms'}}>
-        <div style=${{fontSize:8,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:8}}>⚠ WEAKEST LINK — FOCUS HERE</div>
-        <div style=${{display:'flex',alignItems:'center',gap:13}}>
-          <div style=${{width:44,height:44,borderRadius:12,background:`${wl.color}18`,border:`1px solid ${wl.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:21,flexShrink:0,boxShadow:`0 0 18px ${wl.color}44`}}>${wl.icon}</div>
-          <div style=${{flex:1}}>
-            <div style=${{fontSize:14,fontWeight:900,color:wl.color,marginBottom:3,textShadow:`0 0 16px ${wl.color}66`}}>${wl.label}</div>
-            <div style=${{fontSize:11,color:'#94a3b8'}}>${wl.desc}</div>
-          </div>
-          <div style=${{textAlign:'right',flexShrink:0,padding:'6px 12px',borderRadius:9,background:`${wl.color}12`,border:`1px solid ${wl.color}33`}}>
-            <div style=${{fontSize:26,fontWeight:900,color:wl.color,textShadow:`0 0 18px ${wl.color}77`,letterSpacing:'-1px'}}>${Math.round(wl.score)}</div>
-            <div style=${{fontSize:8,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em'}}>score</div>
+      ${wl&&html`<div class="au card" style=${{padding:'13px 15px',marginBottom:10,animationDelay:'75ms'}}>
+        <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style=${{display:'flex',alignItems:'center',gap:10}}>
+            <div style=${{width:32,height:32,borderRadius:8,background:'rgba(255,255,255,.04)',border:'1px solid rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,flexShrink:0}}>${wl.icon}</div>
+            <div>
+              <div style=${{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
+                <span class="lbl">Weakest link</span>
+                <span style=${{fontSize:10,fontWeight:600,color:'#ef4444',background:'rgba(239,68,68,.08)',padding:'1px 7px',borderRadius:4}}>${Math.round(wl.score)} pts</span>
+              </div>
+              <div style=${{fontSize:13,fontWeight:600,color:'#c8d5e5',letterSpacing:'-.01em'}}>${wl.label} — ${wl.desc}</div>
+            </div>
           </div>
         </div>
       </div>`}
 
       <div class="au" style=${{marginBottom:12,animationDelay:'80ms'}}>
-        <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>LIVE METRICS</div>
+        <div class="lbl" style=${{marginBottom:9}}>Live Metrics</div>
         <div style=${{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:8}}>
           <${MetricCard} icon="🔥" label="Calories" val=${log.calories} tgt=${tgts.calories} unit="kcal" color=${C.calories.m} step=${50} min=${500} max=${5000} inv=${true} onChange=${v=>set({calories:v})}/>
           <${MetricCard} icon="🥩" label="Protein" val=${log.protein} tgt=${tgts.protein} unit="g" color=${C.protein.m} step=${5} min=${0} max=${400} onChange=${v=>set({protein:v})}/>
@@ -466,7 +465,7 @@ function Dashboard({logs,tgts,onChange}){
       </div>
 
       <div class="au" style=${{animationDelay:'100ms'}}>
-        <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em',marginBottom:9}}>PATTERNS & SUGGESTIONS</div>
+        <div class="lbl" style=${{marginBottom:9}}>Patterns & Suggestions</div>
         <div style=${{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:7}}>
           ${pts.map((x,i)=>html`
             <div key=${i} style=${{padding:'12px 14px',borderRadius:11,background:`${IC[x.k]}0a`,border:`1px solid ${IC[x.k]}22`,borderLeft:`3px solid ${IC[x.k]}`,display:'flex',alignItems:'center',gap:11}}>
@@ -478,7 +477,7 @@ function Dashboard({logs,tgts,onChange}){
 
       <div class="au card" style=${{marginTop:12,padding:'15px 17px',animationDelay:'130ms'}}>
         <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
-          <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em'}}>FULL LOG</div>
+          <div class="lbl">Full Log</div>
           <div style=${{fontSize:9,color:'#475569',fontWeight:600}}>${allSorted.length} entries · most recent first</div>
         </div>
         <div style=${{display:'grid',gridTemplateColumns:'1fr 152px',gap:13,alignItems:'start'}}>
@@ -486,7 +485,7 @@ function Dashboard({logs,tgts,onChange}){
             <table style=${{width:'100%',borderCollapse:'collapse',minWidth:500}}>
               <thead style=${{position:'sticky',top:0,background:'#0d0d1a',zIndex:1}}>
                 <tr style=${{borderBottom:'1px solid rgba(255,255,255,.08)'}}>
-                  ${['Date','Score','Gym','Cal','Pro','Sleep','Steps','Water','Nrg','Wgt'].map(h=>html`<th key=${h} style=${{padding:'6px 7px 7px',textAlign:h==='Date'?'left':'center',fontSize:7.5,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:'.07em',whiteSpace:'nowrap'}}>${h}</th>`)}
+                  ${['Date','Score','Gym','Cal','Pro','Sleep','Steps','Water','Nrg','Wgt'].map(h=>html`<th key=${h} style=${{padding:'6px 7px 7px',textAlign:h==='Date'?'left':'center',fontSize:9,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'.05em',whiteSpace:'nowrap'}}>${h}</th>`)}
                 </tr>
               </thead>
               <tbody>
@@ -516,7 +515,7 @@ function Dashboard({logs,tgts,onChange}){
             </table>
           </div>
           <div style=${{display:'flex',flexDirection:'column',gap:4}}>
-            <div style=${{fontSize:7.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:5,paddingBottom:5,borderBottom:'1px solid rgba(255,255,255,.07)'}}>All-Time Avg</div>
+            <div class="lbl" style=${{marginBottom:5,paddingBottom:5,borderBottom:'1px solid rgba(255,255,255,.07)'}}>All-Time Avg</div>
             ${[['Score',avgScV,'pts','#8b5cf6'],['Calories',mAvg('calories'),'kcal',C.calories.m],['Protein',mAvg('protein'),'g',C.protein.m],['Sleep',mAvg('sleep',1),'h',C.sleep.m],['Steps',avgStpFmt,'',C.steps.m],['Water',mAvg('water',1),'L',C.water.m],['Energy',mAvg('energy',1),'/10',C.energy.m],['Weight',mAvg('weight',1),'kg','#06b6d4'],['Gym Rate',gymPct,'%',C.gym.m]].map(([l,v,u,c])=>html`
               <div key=${l} style=${{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 8px',borderRadius:6,background:'rgba(255,255,255,.025)',borderLeft:`2px solid ${v!=null?c+'77':'rgba(255,255,255,.06)'}`}}>
                 <span style=${{fontSize:9,color:'#475569',fontWeight:600}}>${l}</span>
@@ -566,7 +565,7 @@ function Analytics({logs,tgts}){
       <div style=${{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:7,marginBottom:12}}>
         ${[{l:'Best Score',v:pb.score,u:'pts',c:'#8b5cf6'},{l:'Best Sleep',v:pb.sleep,u:'h',c:C.sleep.m},{l:'Best Protein',v:pb.protein,u:'g',c:C.protein.m},{l:'Best Steps',v:pb.steps!=null?(pb.steps>=1000?Math.round(pb.steps/1000)+'k':pb.steps):null,u:'',c:C.steps.m}].map(({l,v,u,c})=>html`
           <div class="card" style=${{padding:'12px 14px',borderTop:`2px solid ${c}77`,textAlign:'center'}}>
-            <div style=${{fontSize:7.5,color:'#475569',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',marginBottom:5}}>${l}</div>
+            <div class="lbl" style=${{marginBottom:5}}>${l}</div>
             <div style=${{fontSize:28,fontWeight:900,color:v!=null?c:'#1e293b',textShadow:v!=null?`0 0 20px ${c}77`:undefined}}>${v??'—'}</div>
             ${v!=null&&u&&html`<div style=${{fontSize:9,color:c,fontWeight:700,opacity:.8,marginTop:2}}>${u}</div>`}
           </div>`)}
@@ -580,7 +579,7 @@ function Analytics({logs,tgts}){
           return html`
             <div class="card" style=${{padding:'13px',borderTop:`2px solid ${c}66`}}>
               <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:7}}>
-                <span style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em'}}>${l}</span>
+                <span class="lbl">${l}</span>
                 <div style=${{display:'flex',alignItems:'baseline',gap:5}}>
                   ${avg!=null&&html`<span style=${{fontSize:15,fontWeight:900,color:c,textShadow:`0 0 12px ${c}77`}}>${avg}</span>`}
                   ${mx!=null&&html`<span style=${{fontSize:9,color:'#334155',fontWeight:600}}>↑${mx}</span>`}
@@ -593,11 +592,11 @@ function Analytics({logs,tgts}){
 
       <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,marginBottom:12}}>
         <div class="card" style=${{padding:'15px'}}>
-          <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:12}}>Day-of-Week Performance</div>
+          <div class="lbl" style=${{marginBottom:12}}>Day-of-Week Performance</div>
           <${DowBar} logs=${logs} tgts=${tgts}/>
         </div>
         <div class="card" style=${{padding:'15px'}}>
-          <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:12}}>Score Distribution (30d)</div>
+          <div class="lbl" style=${{marginBottom:12}}>Score Distribution (30d)</div>
           <div style=${{display:'flex',flexDirection:'column',gap:9}}>
             ${bands.map(({l,lo,hi,c})=>{
               const cnt=sc30.filter(s=>s>=lo&&s<=hi).length;
@@ -616,13 +615,13 @@ function Analytics({logs,tgts}){
       </div>
 
       <div class="card" style=${{padding:'17px',marginBottom:9}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:6}}>Score Heatmap — 90 Days</div>
+        <div class="lbl" style=${{marginBottom:6}}>Score Heatmap — 90 Days</div>
         <div style=${{fontSize:10,color:'#334155',marginBottom:4}}>Each cell = one day · hover for score</div>
         <${HeatmapCalendar} logs=${logs} tgts=${tgts}/>
       </div>
 
       <div class="card" style=${{padding:'17px'}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:14}}>14-Day Habit Consistency</div>
+        <div class="lbl" style=${{marginBottom:14}}>14-Day Habit Consistency</div>
         <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'7px 22px'}}>
           ${habits.map(({l,fn,c})=>{
             const tot=logged14.length,hits=r14.filter(x=>x&&fn(x)).length;
@@ -669,17 +668,17 @@ function Reviews({logs,tgts}){
           {l:'Days Logged',v:`${logged}/7`,sub:logged>=5?'CONSISTENT':logged>=3?'PARTIAL':'GAPS',c:logged>=5?'#10b981':logged>=3?'#f59e0b':'#ef4444'},
         ].map(({l,v,sub,subc,c})=>html`
           <div class="card" style=${{padding:'18px',textAlign:'center',borderTop:`2px solid ${c}66`}}>
-            <div style=${{fontSize:8.5,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:7}}>${l}</div>
+            <div class="lbl" style=${{marginBottom:7}}>${l}</div>
             <div style=${{fontSize:44,fontWeight:900,letterSpacing:'-2.5px',color:c,textShadow:`0 0 32px ${c}66`}}>${v??'—'}</div>
             ${sub&&html`<div style=${{fontSize:9,fontWeight:800,color:subc||c,letterSpacing:'.12em',marginTop:5,textShadow:`0 0 10px ${subc||c}66`}}>${sub}</div>`}
           </div>`)}
       </div>
 
       <div class="card" style=${{padding:'15px',marginBottom:10}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:12}}>Daily Breakdown</div>
+        <div class="lbl" style=${{marginBottom:12}}>Daily Breakdown</div>
         <table style=${{width:'100%',borderCollapse:'collapse'}}>
           <thead><tr>${['Day','Score','Gym','Cal','Protein','Sleep','Steps'].map(h=>html`
-            <th key=${h} style=${{padding:'5px 8px 9px',textAlign:h==='Day'?'left':'right',fontSize:8,fontWeight:800,color:'#334155',textTransform:'uppercase',letterSpacing:'.08em',borderBottom:'1px solid rgba(255,255,255,.06)'}}>${h}</th>`)}</tr></thead>
+            <th key=${h} style=${{padding:'5px 8px 9px',textAlign:h==='Day'?'left':'right',fontSize:9,fontWeight:700,color:'#475569',textTransform:'uppercase',letterSpacing:'.05em',borderBottom:'1px solid rgba(255,255,255,.06)'}}>${h}</th>`)}</tr></thead>
           <tbody>${tw.map((l,i)=>{
             const d=new Date();d.setDate(d.getDate()-(6-i));
             const s=calcScore(l,tgts),sc=s!=null?SC(s):'#334155',isToday=i===6;
@@ -698,7 +697,7 @@ function Reviews({logs,tgts}){
       </div>
 
       <div class="card" style=${{padding:'17px'}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:14}}>This Week Breakdown</div>
+        <div class="lbl" style=${{marginBottom:14}}>This Week Breakdown</div>
         <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'9px 22px'}}>
           ${rows.map(({l,v,max,c})=>html`
             <div key=${l} style=${{padding:'7px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
@@ -752,8 +751,8 @@ function Goals({goals,setGoals}){
               <div style=${{display:'flex',alignItems:'flex-start',gap:11,marginBottom:13}}>
                 <div style=${{width:44,height:44,borderRadius:12,background:`${g.color}1c`,border:`1px solid ${g.color}44`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,boxShadow:`0 0 16px ${g.color}33`}}>${g.icon}</div>
                 <div style=${{flex:1}}>
-                  <div style=${{fontSize:15,fontWeight:900,color:'#f1f5f9',marginBottom:3}}>${g.title}</div>
-                  <div style=${{fontSize:10,color:cat.c,fontWeight:700}}>${cat.i} ${cat.l}</div>
+                  <div style=${{fontSize:14,fontWeight:800,color:'#f1f5f9',marginBottom:3,letterSpacing:'-.01em'}}>${g.title}</div>
+                  <div style=${{fontSize:10,color:cat.c,fontWeight:600}}>${cat.i} ${cat.l}</div>
                 </div>
               </div>
               <div style=${{marginBottom:12}}>
@@ -764,9 +763,9 @@ function Goals({goals,setGoals}){
                 <div class="trk" style=${{height:6}}><div class="fil" style=${{width:`${pct}%`,background:done?'#10b981':g.color,boxShadow:`0 0 8px ${done?'#10b981':g.color}77`,height:'100%'}}></div></div>
               </div>
               <div style=${{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <div><div style=${{fontSize:8,color:'#334155',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:2}}>Current</div><div style=${{fontSize:20,fontWeight:900,color:g.color,letterSpacing:'-.5px',textShadow:`0 0 16px ${g.color}66`}}>${g.current}<span style=${{fontSize:10,fontWeight:500,color:'#475569',marginLeft:3}}>${g.unit}</span></div></div>
-                <div style=${{color:'#1e293b',fontSize:18}}>→</div>
-                <div style=${{textAlign:'right'}}><div style=${{fontSize:8,color:'#334155',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:2}}>Target</div><div style=${{fontSize:20,fontWeight:900,color:'#94a3b8',letterSpacing:'-.5px'}}>${g.target}<span style=${{fontSize:10,fontWeight:500,color:'#475569',marginLeft:3}}>${g.unit}</span></div></div>
+                <div><div class="lbl" style=${{marginBottom:2}}>Current</div><div style=${{fontSize:20,fontWeight:900,color:g.color,letterSpacing:'-.5px'}}>${g.current}<span style=${{fontSize:10,fontWeight:500,color:'#475569',marginLeft:3}}>${g.unit}</span></div></div>
+                <div style=${{color:'#2d3d4e',fontSize:16}}>→</div>
+                <div style=${{textAlign:'right'}}><div class="lbl" style=${{marginBottom:2}}>Target</div><div style=${{fontSize:20,fontWeight:900,color:'#94a3b8',letterSpacing:'-.5px'}}>${g.target}<span style=${{fontSize:10,fontWeight:500,color:'#475569',marginLeft:3}}>${g.unit}</span></div></div>
               </div>
               ${g.deadline&&html`<div style=${{fontSize:10,color:'#475569',marginBottom:11}}>📅 ${new Date(g.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>`}
               <div style=${{display:'flex',gap:6}}>
@@ -789,38 +788,38 @@ function Goals({goals,setGoals}){
             <div style=${{fontSize:17,fontWeight:900,marginBottom:18}}>${editId?'Update Goal':'New Goal'}</div>
             <div style=${{display:'flex',flexDirection:'column',gap:12}}>
               <div>
-                <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Goal Title</div>
+                <div class="lbl" style=${{marginBottom:6}}>Goal Title</div>
                 <input class="inp" placeholder="e.g. Get visible abs" value=${form.title} onInput=${e=>ff('title',e.target.value)}/>
               </div>
               <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
                 <div>
-                  <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Category</div>
+                  <div class="lbl" style=${{marginBottom:6}}>Category</div>
                   <select class="inp" value=${form.cat} onChange=${e=>{const cat=catOf(e.target.value);ff('cat',e.target.value);ff('icon',cat.i);ff('color',cat.c);}}>${CATS.map(c=>html`<option key=${c.id} value=${c.id}>${c.i} ${c.l}</option>`)}</select>
                 </div>
                 <div>
-                  <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Unit</div>
+                  <div class="lbl" style=${{marginBottom:6}}>Unit</div>
                   <input class="inp" placeholder="kg, %, km, reps..." value=${form.unit} onInput=${e=>ff('unit',e.target.value)}/>
                 </div>
               </div>
               <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
                 ${[['start','Start'],['current','Current'],['target','Target']].map(([k,l])=>html`
                   <div key=${k}>
-                    <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>${l}</div>
+                    <div class="lbl" style=${{marginBottom:6}}>${l}</div>
                     <input type="number" class="inp" value=${form[k]} onChange=${e=>ff(k,parseFloat(e.target.value)||0)} style=${{colorScheme:'dark'}}/>
                   </div>`)}
               </div>
               <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
                 <div>
-                  <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Direction</div>
+                  <div class="lbl" style=${{marginBottom:6}}>Direction</div>
                   <select class="inp" value=${form.dir} onChange=${e=>ff('dir',e.target.value)}><option value="up">↑ Higher is better</option><option value="down">↓ Lower is better</option></select>
                 </div>
                 <div>
-                  <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Deadline</div>
+                  <div class="lbl" style=${{marginBottom:6}}>Deadline</div>
                   <input type="date" class="inp" value=${form.deadline||''} onChange=${e=>ff('deadline',e.target.value)} style=${{colorScheme:'dark'}}/>
                 </div>
               </div>
               <div>
-                <div style=${{fontSize:9.5,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:6}}>Auto-Track From Daily Log</div>
+                <div class="lbl" style=${{marginBottom:6}}>Auto-Track From Daily Log</div>
                 <select class="inp" value=${form.linkedMetric||'none'} onChange=${e=>ff('linkedMetric',e.target.value)}>
                   <option value="none">None (update manually)</option>
                   <option value="weight">⚖️ Weight (kg)</option>
@@ -866,30 +865,30 @@ function Settings({tgts,setTgts,settings,setSettings}){
     <div style=${{padding:'16px 20px',height:'100%',overflowY:'auto'}}>
       <div style=${{marginBottom:16}}><div style=${{fontSize:22,fontWeight:900,letterSpacing:'-.5px',marginBottom:2}}>Settings</div><div style=${{fontSize:12,color:'#64748b',fontWeight:500}}>Targets, preferences, and data</div></div>
       <div class="card" style=${{padding:'17px',marginBottom:10}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:13}}>Daily Targets</div>
+        <div class="lbl" style=${{marginBottom:13}}>Daily Targets</div>
         <div style=${{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(195px,1fr))',gap:9,marginBottom:13}}>
           ${flds.map(({k,l,u,i,s,mn,mx})=>html`
             <div key=${k} style=${{padding:'12px',background:'rgba(255,255,255,.02)',borderRadius:10,border:'1px solid rgba(255,255,255,.06)'}}>
               <div style=${{display:'flex',alignItems:'center',gap:6,marginBottom:9}}><span style=${{fontSize:14}}>${i}</span><span style=${{fontSize:11,fontWeight:700,color:'#e2e8f0'}}>${l}</span></div>
               <div style=${{display:'flex',alignItems:'center',gap:6}}>
-                <button class="bsm" onClick=${()=>setTf(p=>({...p,[k]:Math.max(mn,p[k]-s)}))}> −</button>
+                <button class="bsm" onClick=${()=>setTf(p=>({...p,[k]:Math.max(mn,p[k]-s)}))}>−</button>
                 <input type="number" value=${tf[k]} onChange=${e=>{const n=parseFloat(e.target.value);if(!isNaN(n))setTf(p=>({...p,[k]:Math.min(mx,Math.max(mn,n))}));}} style=${{flex:1,textAlign:'center',fontSize:18,fontWeight:900,color:'#f1f5f9',background:'transparent',border:'none',borderBottom:'1px solid rgba(255,255,255,.08)',outline:'none',padding:'3px 0',colorScheme:'dark',fontFamily:'inherit'}}/>
                 <span style=${{fontSize:10,color:'#475569',minWidth:22,textAlign:'right'}}>${u}</span>
                 <button class="bsm" onClick=${()=>setTf(p=>({...p,[k]:Math.min(mx,p[k]+s)}))}>+</button>
               </div>
             </div>`)}
         </div>
-        <button onClick=${saveTgts} style=${{padding:'10px 24px',borderRadius:9,border:'none',cursor:'pointer',fontSize:12,fontWeight:800,background:ok?'rgba(16,185,129,.15)':'linear-gradient(135deg,#8b5cf6,#06b6d4)',color:ok?'#10b981':'white',transition:'all .3s',fontFamily:'inherit',boxShadow:ok?'none':'0 4px 16px rgba(139,92,246,.4)'}}>${ok?'✓ Saved':'Save Targets'}</button>
+        <button onClick=${saveTgts} class="btnp" style=${{background:ok?'rgba(16,185,129,.15)':'#8b5cf6',color:ok?'#10b981':'white',transition:'all .3s'}}>${ok?'✓ Saved':'Save Targets'}</button>
       </div>
       <div class="card" style=${{padding:'17px',marginBottom:10}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:13}}>Preferences</div>
+        <div class="lbl" style=${{marginBottom:13}}>Preferences</div>
         <div style=${{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
           <div><div style=${{fontSize:11,fontWeight:700,color:'#94a3b8',marginBottom:6}}>Units</div><select class="inp" value=${settings.units} onChange=${e=>setSettings(s=>({...s,units:e.target.value}))}><option value="metric">Metric (kg, km)</option><option value="imperial">Imperial (lbs, mi)</option></select></div>
           <div><div style=${{fontSize:11,fontWeight:700,color:'#94a3b8',marginBottom:6}}>Week Starts On</div><select class="inp" value=${settings.weekStart} onChange=${e=>setSettings(s=>({...s,weekStart:e.target.value}))}><option value="mon">Monday</option><option value="sun">Sunday</option></select></div>
         </div>
       </div>
       <div class="card" style=${{padding:'17px',marginBottom:10}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:13}}>Data Management</div>
+        <div class="lbl" style=${{marginBottom:13}}>Data Management</div>
         <div style=${{display:'flex',gap:8,flexWrap:'wrap'}}>
           <button onClick=${exportData} style=${{padding:'9px 16px',borderRadius:8,border:'1px solid rgba(139,92,246,.3)',background:'rgba(139,92,246,.08)',color:'#c4b5fd',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>↓ Export JSON</button>
           <label style=${{padding:'9px 16px',borderRadius:8,border:'1px solid rgba(6,182,212,.3)',background:'rgba(6,182,212,.08)',color:'#22d3ee',fontSize:12,fontWeight:700,cursor:'pointer'}}>↑ Import JSON<input type="file" accept=".json" onChange=${importData} style=${{display:'none'}}/></label>
@@ -897,7 +896,7 @@ function Settings({tgts,setTgts,settings,setSettings}){
         </div>
       </div>
       <div class="card" style=${{padding:'17px'}}>
-        <div style=${{fontSize:9,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:10}}>About</div>
+        <div class="lbl" style=${{marginBottom:10}}>About</div>
         <p style=${{fontSize:12,color:'#64748b',lineHeight:1.9}}><strong style=${{color:'#94a3b8'}}>Performance OS v2.0</strong> — Your personal mission control.<br/>All data stored locally. No account, no cloud, no tracking.</p>
       </div>
     </div>`;
@@ -919,7 +918,7 @@ function App(){
   const saveSettings=s=>{setSettings(s);sv(SK,s);};
   const saveTgts=t=>{setTgts(t);sv(TK,t);};
   const score=calcScore(getTodayLog(logs),tgts);
-  const bg=score!=null?`radial-gradient(ellipse 80% 35% at 50% -5%,${SG(score)} 0%,transparent 55%)`:'radial-gradient(ellipse 80% 35% at 50% -5%,rgba(139,92,246,.12) 0%,transparent 55%)';
+  const bg='radial-gradient(ellipse 60% 20% at 50% 0%,rgba(139,92,246,.07) 0%,transparent 65%)';
   return html`
     <div style=${{display:'flex',height:'100vh',background:'#05050a',backgroundImage:bg,overflow:'hidden'}}>
       <${Sidebar} page=${page} setPage=${setPage} score=${score}/>
