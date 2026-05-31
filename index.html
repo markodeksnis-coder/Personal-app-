@@ -183,7 +183,7 @@ function HeatmapCalendar({logs,tgts}){
               const bg=c.s!=null?SC(c.s):'rgba(255,255,255,.07)';
               return html`<div key=${di} onMouseEnter=${()=>setHov(c)} onMouseLeave=${()=>setHov(null)} style=${{width:sz,height:sz,borderRadius:2,background:bg,opacity:c.s!=null?1:.45,boxShadow:c.s!=null?`0 0 5px ${bg}55`:undefined,outline:isToday?`1.5px solid ${c.s!=null?bg:'#8b5cf6'}`:undefined,cursor:'default',transition:'opacity .1s'}}></div>`;
             })}
-          </div>`)}
+          </div>`)}'
       </div>
       ${hov&&html`<div style=${{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)',background:'#0d0d1a',border:'1px solid rgba(255,255,255,.14)',borderRadius:8,padding:'5px 12px',fontSize:11,fontWeight:700,color:'#e2e8f0',whiteSpace:'nowrap',pointerEvents:'none',zIndex:10}}>
         ${hov.dt} · ${hov.s!=null?html`<span style=${{color:SC(hov.s),fontWeight:900}}>${hov.s} pts — ${SL(hov.s)}</span>`:'no log'}
@@ -211,7 +211,7 @@ function Ring({score,size=200}){
           strokeDasharray=${circ+' '+circ} strokeDashoffset=${off}
           style=${{transition:'stroke-dashoffset 1.6s cubic-bezier(.4,0,.2,1)',filter:`drop-shadow(0 0 18px ${col}) drop-shadow(0 0 36px ${col}66)`}}/>`}
         ${Array.from({length:36},(_,i)=>{const a=(i/36)*2*Math.PI,ri=r-18,ro=r-13;
-          return html`<line key=${i} x1=${(size/2+Math.cos(a)*ri).toFixed(1)} y1=${(size/2+Math.sin(a)*ri).toFixed(1)} x2=${(size/2+Math.cos(a)*ro).toFixed(1)} y2=${(size/2+Math.sin(a)*ro).toFixed(1)} stroke="rgba(255,255,255,.05)" strokeWidth="1"/>`;})}}
+          return html`<line key=${i} x1=${(size/2+Math.cos(a)*ri).toFixed(1)} y1=${(size/2+Math.sin(a)*ri).toFixed(1)} x2=${(size/2+Math.cos(a)*ro).toFixed(1)} y2=${(size/2+Math.sin(a)*ro).toFixed(1)} stroke="rgba(255,255,255,.05)" strokeWidth="1"/>`;})} 
       </svg>
       <div style=${{position:'absolute',textAlign:'center',zIndex:2}}>
         <div style=${{fontSize:7.5,color:'#334155',fontWeight:800,textTransform:'uppercase',letterSpacing:'.22em',marginBottom:4}}>SYSTEM STATUS</div>
@@ -238,7 +238,7 @@ function Chart({data,color,h=70}){
       <defs><linearGradient id=${gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor=${color} stopOpacity="0.32"/><stop offset="100%" stopColor=${color} stopOpacity="0"/></linearGradient></defs>
       ${area&&html`<path d=${area} fill=${'url(#'+gid+')'}/>`}
       ${path&&html`<path d=${path} fill="none" stroke=${color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style=${{filter:`drop-shadow(0 0 5px ${color}) drop-shadow(0 0 2px ${color})`}}/>`}
-      ${pts.slice(-1).map((p,i)=>html`<circle key=${i} cx=${p.x.toFixed(1)} cy=${p.y.toFixed(1)} r="3.5" fill=${color} style=${{filter:`drop-shadow(0 0 6px ${color})`}}/>`)}
+      ${pts.slice(-1).map((p,i)=>html`<circle key=${i} cx=${p.x.toFixed(1)} cy=${p.y.toFixed(1)} r="3.5" fill=${color} style=${{filter:`drop-shadow(0 0 6px ${color})`}}/>`)} 
     </svg>`;
 }
 
@@ -373,6 +373,12 @@ function Dashboard({logs,tgts,onChange}){
   const scores30=lastN(logs,30).filter(l=>l!=null).map(l=>calcScore(l,tgts)).filter(s=>s!=null);
   const avg30=scores30.length?Math.round(scores30.reduce((a,b)=>a+b)/scores30.length):null;
   const best=scores30.length?Math.max(...scores30):null;
+  const allSorted=[...logs].sort((a,b)=>b.date.localeCompare(a.date));
+  const mAvg=(key,dec=0)=>{const v=allSorted.filter(l=>l[key]!=null).map(l=>l[key]);if(!v.length)return null;const a=v.reduce((s,x)=>s+x)/v.length;return dec?Math.round(a*Math.pow(10,dec))/Math.pow(10,dec):Math.round(a);};
+  const allScores2=allSorted.map(l=>calcScore(l,tgts)).filter(s=>s!=null);
+  const avgScV=allScores2.length?Math.round(allScores2.reduce((a,b)=>a+b)/allScores2.length):null;
+  const gymPct=allSorted.filter(l=>l.gym!==null).length?Math.round(allSorted.filter(l=>l.gym===true).length/Math.max(1,allSorted.filter(l=>l.gym!==null).length)*100):null;
+  const avgStpR=mAvg('steps');const avgStpFmt=avgStpR!=null?(avgStpR>=1000?Math.round(avgStpR/100)/10+'k':avgStpR):null;
   return html`
     <div style=${{padding:'16px 20px',height:'100%',overflowY:'auto'}}>
       <div class="au" style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
@@ -467,6 +473,56 @@ function Dashboard({logs,tgts,onChange}){
               <div style=${{width:30,height:30,borderRadius:8,background:`${IC[x.k]}1c`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>${{w:'⚠️',g:'✨',b:'🔻',i:'💡'}[x.k]}</div>
               <div style=${{fontSize:11,color:'#cbd5e1',lineHeight:1.5}}><span style=${{color:IC[x.k],fontWeight:800}}>${{w:'Watch — ',g:'Win — ',b:'Alert — ',i:'Tip — '}[x.k]}</span>${x.m}</div>
             </div>`)}
+        </div>
+      </div>
+
+      <div class="au card" style=${{marginTop:12,padding:'15px 17px',animationDelay:'130ms'}}>
+        <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
+          <div style=${{fontSize:8.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.13em'}}>FULL LOG</div>
+          <div style=${{fontSize:9,color:'#475569',fontWeight:600}}>${allSorted.length} entries · most recent first</div>
+        </div>
+        <div style=${{display:'grid',gridTemplateColumns:'1fr 152px',gap:13,alignItems:'start'}}>
+          <div style=${{overflowY:'auto',maxHeight:310,overflowX:'auto',borderRadius:8,border:'1px solid rgba(255,255,255,.05)'}}>
+            <table style=${{width:'100%',borderCollapse:'collapse',minWidth:500}}>
+              <thead style=${{position:'sticky',top:0,background:'#0d0d1a',zIndex:1}}>
+                <tr style=${{borderBottom:'1px solid rgba(255,255,255,.08)'}}>
+                  ${['Date','Score','Gym','Cal','Pro','Sleep','Steps','Water','Nrg','Wgt'].map(h=>html`<th key=${h} style=${{padding:'6px 7px 7px',textAlign:h==='Date'?'left':'center',fontSize:7.5,fontWeight:800,color:'#475569',textTransform:'uppercase',letterSpacing:'.07em',whiteSpace:'nowrap'}}>${h}</th>`)}
+                </tr>
+              </thead>
+              <tbody>
+                ${allSorted.length===0&&html`<tr><td colSpan="10" style=${{padding:'24px',textAlign:'center',fontSize:11,color:'#334155'}}>No data yet — start logging!</td></tr>`}
+                ${allSorted.map((l,i)=>{
+                  const d=new Date(l.date+'T12:00:00');
+                  const dn=['Su','Mo','Tu','We','Th','Fr','Sa'][d.getDay()];
+                  const dm=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                  const isToday=l.date===today();
+                  const s=calcScore(l,tgts),sc=s!=null?SC(s):'#334155';
+                  const ec=l.energy!=null?(l.energy>=7?'#10b981':l.energy>=4?'#f59e0b':'#ef4444'):null;
+                  return html`
+                    <tr key=${i} style=${{borderBottom:'1px solid rgba(255,255,255,.025)',background:isToday?'rgba(139,92,246,.08)':'transparent'}}>
+                      <td style=${{padding:'5px 7px',fontSize:10,fontWeight:700,color:isToday?'#c4b5fd':'#64748b',whiteSpace:'nowrap'}}>${isToday?'● Today':dn+' '+dm}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontWeight:900,fontSize:12,color:sc,textShadow:s!=null?`0 0 8px ${sc}44`:undefined}}>${s??'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:12}}>${l.gym===true?html`<span style=${{color:C.gym.m,fontWeight:900,textShadow:`0 0 6px ${C.gym.m}66`}}>✓</span>`:l.gym===false?html`<span style=${{color:'#334155'}}>✗</span>`:'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:l.calories!=null?(l.calories<=tgts.calories?'#10b981':'#ef4444'):'#334155'}}>${l.calories??'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:l.protein!=null?(l.protein>=tgts.protein?C.protein.m:'#f59e0b'):'#334155'}}>${l.protein!=null?l.protein+'g':'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:l.sleep!=null?C.sleep.m:'#334155'}}>${l.sleep!=null?l.sleep+'h':'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:l.steps!=null?C.steps.m:'#334155'}}>${l.steps!=null?(l.steps>=1000?Math.round(l.steps/100)/10+'k':l.steps):'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:l.water!=null?C.water.m:'#334155'}}>${l.water!=null?l.water+'L':'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:ec??'#334155'}}>${l.energy??'·'}</td>
+                      <td style=${{padding:'5px 7px',textAlign:'center',fontSize:10,fontWeight:700,color:l.weight!=null?'#06b6d4':'#334155'}}>${l.weight??'·'}</td>
+                    </tr>`;
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div style=${{display:'flex',flexDirection:'column',gap:4}}>
+            <div style=${{fontSize:7.5,fontWeight:800,color:'#64748b',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:5,paddingBottom:5,borderBottom:'1px solid rgba(255,255,255,.07)'}}>All-Time Avg</div>
+            ${[['Score',avgScV,'pts','#8b5cf6'],['Calories',mAvg('calories'),'kcal',C.calories.m],['Protein',mAvg('protein'),'g',C.protein.m],['Sleep',mAvg('sleep',1),'h',C.sleep.m],['Steps',avgStpFmt,'',C.steps.m],['Water',mAvg('water',1),'L',C.water.m],['Energy',mAvg('energy',1),'/10',C.energy.m],['Weight',mAvg('weight',1),'kg','#06b6d4'],['Gym Rate',gymPct,'%',C.gym.m]].map(([l,v,u,c])=>html`
+              <div key=${l} style=${{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 8px',borderRadius:6,background:'rgba(255,255,255,.025)',borderLeft:`2px solid ${v!=null?c+'77':'rgba(255,255,255,.06)'}`}}>
+                <span style=${{fontSize:9,color:'#475569',fontWeight:600}}>${l}</span>
+                <span style=${{fontSize:13,fontWeight:900,color:v!=null?c:'#1e293b',textShadow:v!=null?`0 0 8px ${c}44`:undefined}}>${v!=null?v+u:'—'}</span>
+              </div>`)}
+          </div>
         </div>
       </div>
     </div>`;
@@ -816,7 +872,7 @@ function Settings({tgts,setTgts,settings,setSettings}){
             <div key=${k} style=${{padding:'12px',background:'rgba(255,255,255,.02)',borderRadius:10,border:'1px solid rgba(255,255,255,.06)'}}>
               <div style=${{display:'flex',alignItems:'center',gap:6,marginBottom:9}}><span style=${{fontSize:14}}>${i}</span><span style=${{fontSize:11,fontWeight:700,color:'#e2e8f0'}}>${l}</span></div>
               <div style=${{display:'flex',alignItems:'center',gap:6}}>
-                <button class="bsm" onClick=${()=>setTf(p=>({...p,[k]:Math.max(mn,p[k]-s)}))}}> −</button>
+                <button class="bsm" onClick=${()=>setTf(p=>({...p,[k]:Math.max(mn,p[k]-s)}))}> −</button>
                 <input type="number" value=${tf[k]} onChange=${e=>{const n=parseFloat(e.target.value);if(!isNaN(n))setTf(p=>({...p,[k]:Math.min(mx,Math.max(mn,n))}));}} style=${{flex:1,textAlign:'center',fontSize:18,fontWeight:900,color:'#f1f5f9',background:'transparent',border:'none',borderBottom:'1px solid rgba(255,255,255,.08)',outline:'none',padding:'3px 0',colorScheme:'dark',fontFamily:'inherit'}}/>
                 <span style=${{fontSize:10,color:'#475569',minWidth:22,textAlign:'right'}}>${u}</span>
                 <button class="bsm" onClick=${()=>setTf(p=>({...p,[k]:Math.min(mx,p[k]+s)}))}>+</button>
