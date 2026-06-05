@@ -27,6 +27,191 @@
 </head>
 <body>
   
+<div id="lx-today-holder" style="display:none">
+<style>
+#lx-today{margin-bottom:28px}
+#lx-today-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lx-panel{background:#fff;border:1px solid #e4e4e0;border-radius:10px;padding:18px 20px}
+.lx-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.lx-panel-title{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.09em;color:#999}
+.lx-panel-date{font-size:11px;color:#c8c8c4}
+.lx-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f2}
+.lx-item:last-child{border-bottom:none}
+.lx-cb{width:17px;height:17px;border-radius:50%;border:1.5px solid #d4d4d0;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.lx-cb:hover{border-color:#6c63ff}
+.lx-cb.done{background:#6c63ff;border-color:#6c63ff}
+.lx-cb.done::after{content:'✓';color:#fff;font-size:10px;font-weight:700;line-height:1}
+.lx-item-text{flex:1;font-size:13px;color:#222;line-height:1.4}
+.lx-item-text.done{text-decoration:line-through;color:#c0c0bc}
+.lx-item-del{width:18px;height:18px;border:none;background:none;color:#d4d4d0;font-size:13px;cursor:pointer;flex-shrink:0;padding:0;line-height:1;opacity:0;transition:opacity 0.1s;display:flex;align-items:center;justify-content:center}
+.lx-item:hover .lx-item-del{opacity:1}
+.lx-item-del:hover{color:#ef4444}
+.lx-add-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f2}
+.lx-add-inp{flex:1;border:none;outline:none;font-family:'Inter',sans-serif;font-size:13px;color:#222;background:none;padding:2px 0}
+.lx-add-inp::placeholder{color:#c8c8c4}
+.lx-add-btn{width:24px;height:24px;border-radius:6px;border:1px solid #e4e4e0;background:#f5f5f2;color:#999;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;padding:0;line-height:1}
+.lx-add-btn:hover{background:#6c63ff18;border-color:#6c63ff;color:#6c63ff}
+.lx-empty{font-size:12px;color:#c8c8c4;padding:8px 0}
+</style>
+<div id="lx-today">
+  <div id="lx-today-grid">
+    <div class="lx-panel">
+      <div class="lx-panel-hdr">
+        <span class="lx-panel-title">Non-Negotiables</span>
+        <span class="lx-panel-date" id="lx-nn-date"></span>
+      </div>
+      <div id="lx-nn-list"></div>
+      <div class="lx-add-row">
+        <input class="lx-add-inp" id="lx-nn-inp" placeholder="Add recurring item…" autocomplete="off"/>
+        <button class="lx-add-btn" onclick="lxNnAdd()" title="Add">+</button>
+      </div>
+    </div>
+    <div class="lx-panel">
+      <div class="lx-panel-hdr">
+        <span class="lx-panel-title">Today's Plan</span>
+      </div>
+      <div id="lx-plan-list"></div>
+      <div class="lx-add-row">
+        <input class="lx-add-inp" id="lx-plan-inp" placeholder="Add task…" autocomplete="off"/>
+        <button class="lx-add-btn" onclick="lxPlanAdd()" title="Add">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  var TODAY = new Date().toISOString().slice(0,10);
+
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // ── Non-Negotiables storage ────────────────────────────────────────────
+  function getNnTpl(){ try{return JSON.parse(localStorage.getItem('lx4_nn_tpl')||'[]');}catch(e){return[];} }
+  function saveNnTpl(d){ localStorage.setItem('lx4_nn_tpl',JSON.stringify(d)); }
+  function getNnState(){ try{return JSON.parse(localStorage.getItem('lx4_nn_'+TODAY)||'{}');}catch(e){return{};} }
+  function saveNnState(d){ localStorage.setItem('lx4_nn_'+TODAY,JSON.stringify(d)); }
+
+  // ── Day Planner storage ────────────────────────────────────────────────
+  function getPlan(){ try{return JSON.parse(localStorage.getItem('lx4_plan_'+TODAY)||'[]');}catch(e){return[];} }
+  function savePlan(d){ localStorage.setItem('lx4_plan_'+TODAY,JSON.stringify(d)); }
+
+  // ── Render Non-Negotiables ─────────────────────────────────────────────
+  function renderNn(){
+    var tpl=getNnTpl(), state=getNnState(), el=document.getElementById('lx-nn-list');
+    if(!el) return;
+    if(!tpl.length){ el.innerHTML='<div class="lx-empty">No recurring items yet</div>'; return; }
+    el.innerHTML='';
+    tpl.forEach(function(item){
+      var done=!!state[item.id];
+      var row=document.createElement('div'); row.className='lx-item';
+      row.innerHTML='<div class="lx-cb'+(done?' done':'')+'" onclick="lxNnToggle(''+item.id+'')"></div>'
+        +'<span class="lx-item-text'+(done?' done':'')+'">'+esc(item.text)+'</span>'
+        +'<button class="lx-item-del" onclick="lxNnDel(''+item.id+'')" title="Remove">✕</button>';
+      el.appendChild(row);
+    });
+  }
+
+  window.lxNnToggle=function(id){ var s=getNnState(); s[id]=!s[id]; saveNnState(s); renderNn(); };
+  window.lxNnDel=function(id){ saveNnTpl(getNnTpl().filter(function(x){return x.id!==id;})); renderNn(); };
+  window.lxNnAdd=function(){
+    var inp=document.getElementById('lx-nn-inp'), text=inp&&inp.value.trim();
+    if(!text) return;
+    var tpl=getNnTpl(); tpl.push({id:uid(),text:text}); saveNnTpl(tpl);
+    inp.value=''; renderNn();
+  };
+
+  // ── Render Day Planner ─────────────────────────────────────────────────
+  function renderPlan(){
+    var tasks=getPlan(), el=document.getElementById('lx-plan-list');
+    if(!el) return;
+    if(!tasks.length){ el.innerHTML='<div class="lx-empty">Nothing planned yet</div>'; return; }
+    el.innerHTML='';
+    tasks.forEach(function(task){
+      var row=document.createElement('div'); row.className='lx-item';
+      row.innerHTML='<div class="lx-cb'+(task.done?' done':'')+'" onclick="lxPlanToggle(''+task.id+'')"></div>'
+        +'<span class="lx-item-text'+(task.done?' done':'')+'" ondblclick="lxPlanEdit(this,''+task.id+'')">'+esc(task.text)+'</span>'
+        +'<button class="lx-item-del" onclick="lxPlanDel(''+task.id+'')" title="Delete">✕</button>';
+      el.appendChild(row);
+    });
+  }
+
+  window.lxPlanToggle=function(id){
+    savePlan(getPlan().map(function(t){return t.id===id?Object.assign({},t,{done:!t.done}):t;}));
+    renderPlan();
+  };
+  window.lxPlanDel=function(id){ savePlan(getPlan().filter(function(t){return t.id!==id;})); renderPlan(); };
+  window.lxPlanAdd=function(){
+    var inp=document.getElementById('lx-plan-inp'), text=inp&&inp.value.trim();
+    if(!text) return;
+    var tasks=getPlan(); tasks.push({id:uid(),text:text,done:false}); savePlan(tasks);
+    inp.value=''; renderPlan();
+  };
+  window.lxPlanEdit=function(el,id){
+    if(el.contentEditable==='true') return;
+    el.contentEditable='true'; el.focus();
+    var r=document.createRange(); r.selectNodeContents(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+    function commit(){
+      el.contentEditable='false';
+      var t=el.textContent.trim();
+      if(!t){renderPlan();return;}
+      savePlan(getPlan().map(function(x){return x.id===id?Object.assign({},x,{text:t}):x;}));
+    }
+    el.onblur=commit;
+    el.onkeydown=function(e){
+      if(e.key==='Enter'){e.preventDefault();el.blur();}
+      if(e.key==='Escape'){el.contentEditable='false';renderPlan();}
+    };
+  };
+
+  // ── Enter key on inputs ────────────────────────────────────────────────
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter') return;
+    var id=document.activeElement&&document.activeElement.id;
+    if(id==='lx-nn-inp') lxNnAdd();
+    if(id==='lx-plan-inp') lxPlanAdd();
+  });
+
+  // ── Inject into dashboard when visible ────────────────────────────────
+  function updateVisibility(){
+    var main=document.querySelector('main');
+    var holder=document.getElementById('lx-today-holder');
+    if(!main||!holder) return;
+    var isDash=/good (morning|afternoon|evening)/i.test(main.textContent);
+    if(isDash && !main.contains(holder)){
+      holder.style.display='block';
+      main.insertBefore(holder,main.firstChild);
+      var d=new Date(); var el=document.getElementById('lx-nn-date');
+      if(el) el.textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      renderNn(); renderPlan();
+    } else if(!isDash && main.contains(holder)){
+      document.body.appendChild(holder);
+      holder.style.display='none';
+    }
+  }
+
+  // Watch for page navigation (React updates main content)
+  var obs=new MutationObserver(updateVisibility);
+  function startWatch(){
+    var main=document.querySelector('main');
+    if(main){ obs.observe(main,{childList:true,subtree:false}); updateVisibility(); }
+    else{
+      var bodyObs=new MutationObserver(function(){
+        var m=document.querySelector('main');
+        if(m){ bodyObs.disconnect(); obs.observe(m,{childList:true,subtree:false}); updateVisibility(); }
+      });
+      bodyObs.observe(document.body,{childList:true,subtree:true});
+    }
+  }
+  document.readyState==='loading'
+    ?document.addEventListener('DOMContentLoaded',startWatch)
+    :startWatch();
+})();
+</script>
+
+  
 <style>
 #lx-edit-overlay{
   display:none;position:fixed;inset:0;z-index:10000;
