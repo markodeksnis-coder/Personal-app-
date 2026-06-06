@@ -212,6 +212,234 @@
 </script>
 
   
+<div id="lx-ptable-holder" style="display:none">
+<style>
+#lx-pt{font-family:'Inter',Arial,sans-serif;margin-bottom:24px}
+.lx-ptsec{margin-bottom:14px;border-radius:10px;overflow:hidden}
+.lx-pthdr{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.lx-pt-thead{display:grid;grid-template-columns:1fr 150px 90px 105px 120px}
+.lx-pt-thead>div{padding:7px 12px;font-size:10px;font-weight:600;letter-spacing:.07em}
+.lx-pt-thead>div:first-child{padding-left:16px}
+.lx-pt-thead>div:last-child{text-align:center}
+.lx-ptrow{display:grid;grid-template-columns:1fr 150px 90px 105px 120px;cursor:pointer}
+.lx-ptcell{padding:9px 12px;display:flex;align-items:center;font-size:13px;border-bottom:1px solid #f0f0ed}
+.lx-ptcell:first-child{padding-left:16px;gap:10px}
+.lx-ptcell:last-child{justify-content:center}
+.lx-ptcb{width:16px;height:16px;border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.lx-ptcb.done::after{content:'✓';font-size:10px;font-weight:700;color:#fff}
+.lx-ptbadge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;white-space:nowrap}
+.lx-ptrow:hover .lx-ptcell{background:rgba(108,99,255,0.05)!important}
+.lx-ptadd-btn{border:none;background:none;font-size:12px;font-weight:500;cursor:pointer;padding:4px 0;font-family:inherit;color:#6c63ff}
+.lx-pt-inp{border:none;border-bottom:1.5px solid #6c63ff;outline:none;font-family:inherit;font-size:13px;background:transparent;padding:2px 4px;min-width:200px;color:#111}
+</style>
+<div id="lx-pt"></div>
+</div>
+
+<script>
+(function(){
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  var PC=['#6c63ff','#f59e0b','#ef4444','#10b981','#3b82f6','#8b5cf6','#ec4899'];
+  function pc(n){return PC[(n-1)%PC.length];}
+  function getPri(){try{return JSON.parse(localStorage.getItem('lx4_pri')||'[]');}catch(e){return[];}}
+  function savePri(d){localStorage.setItem('lx4_pri',JSON.stringify(d));}
+  function uid(){return Math.random().toString(36).slice(2,9);}
+
+  function renderTable(){
+    var el=document.getElementById('lx-pt');
+    if(!el)return;
+    var pri=getPri();
+    if(!pri.length){
+      el.innerHTML='<div style="color:#888;padding:32px 0;text-align:center;font-size:13px">No priorities yet — add them in the Priorities view</div>';
+      return;
+    }
+    var html='';
+    pri.forEach(function(p){
+      var col=pc(p.num);
+      var rows=[];
+      (p.projects||[]).forEach(function(proj){
+        (proj.tasks||[]).forEach(function(t){rows.push({t:t,pn:proj.name,pid:proj.id});});
+      });
+      var done=rows.filter(function(x){return x.t.done;}).length;
+      var pct=rows.length?Math.round(done/rows.length*100):0;
+
+      html+='<div class="lx-ptsec" style="border:1px solid #e4e4e0;border-left:4px solid '+col+'">';
+
+      // Section header
+      html+='<div class="lx-pthdr" style="background:#f9f9f8;border-bottom:1px solid #e4e4e0">';
+      html+='<span style="font-size:10px;font-weight:700;color:#fff;background:'+col+';padding:2px 9px;border-radius:5px;letter-spacing:.05em">P'+p.num+'</span>';
+      html+='<span style="flex:1;font-size:13px;font-weight:600;color:#111">'+esc(p.title)+'</span>';
+      if(rows.length){
+        html+='<span style="font-size:11px;color:#aaa;margin-right:10px">'+done+'/'+rows.length+' done</span>';
+        html+='<div style="width:72px;height:4px;background:#e4e4e0;border-radius:2px;overflow:hidden;flex-shrink:0"><div style="height:100%;width:'+pct+'%;background:'+col+';transition:width .3s"></div></div>';
+      }
+      html+='</div>';
+
+      if(rows.length){
+        // Column headers
+        html+='<div class="lx-pt-thead" style="background:#fafafa;border-bottom:1px solid #e4e4e0;color:#aaa">';
+        html+='<div>TASK</div><div>PROJECT</div><div>LEVERAGE</div><div>DEADLINE</div><div>STATUS</div></div>';
+
+        rows.forEach(function(x,i){
+          var t=x.t;
+          var bg=i%2===0?'#ffffff':'#fafafa';
+          // status
+          var sbl,sbg,sfc;
+          if(t.done){sbl='Done';sbg='#dcfce7';sfc='#16a34a';}
+          else if(t.leverage==='high'){sbl='In Progress';sbg='#fef9c3';sfc='#d97706';}
+          else{sbl='To Do';sbg='#f0f0f0';sfc='#888';}
+          // checkbox
+          var cbBdr=t.done?col:(t.leverage==='high'?col:'#d4d4d0');
+          var cbBg=t.done?col:'transparent';
+          // deadline
+          var dl='—',dlc='#aaa';
+          if(t.deadline){
+            var dd=new Date(t.deadline+'T00:00');
+            dl=dd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+            if(!t.done){
+              var tod=new Date().toISOString().slice(0,10);
+              if(t.deadline<tod)dlc='#dc2626';
+              else if(t.deadline===tod)dlc='#d97706';
+              else dlc='#555';
+            }
+          }
+          // leverage
+          var lbg=t.leverage==='high'?'#fef9c3':'#f0f0f0';
+          var lfc=t.leverage==='high'?'#d97706':'#999';
+          var lbl=t.leverage==='high'?'⚡ High':'Low';
+
+          html+='<div class="lx-ptrow" onclick="lxPtClick(''+p.id+'',''+x.pid+'',''+t.id+'')">';
+          // name cell
+          html+='<div class="lx-ptcell" style="background:'+bg+'">';
+          html+='<div class="lx-ptcb'+(t.done?' done':'')+'" onclick="event.stopPropagation();lxPtToggle(''+p.id+'',''+x.pid+'',''+t.id+'')" style="border:1.5px solid '+cbBdr+';background:'+cbBg+'"></div>';
+          html+='<span style="color:'+(t.done?'#bbb':'#111')+(t.done?';text-decoration:line-through':'')+'" title="'+esc(t.notes||'')+'">'+esc(t.text)+'</span>';
+          if(t.notes&&!t.done)html+='<span style="font-size:11px;color:#ccc;margin-left:6px" title="'+esc(t.notes)+'">📝</span>';
+          html+='</div>';
+          html+='<div class="lx-ptcell" style="background:'+bg+';font-size:12px;color:#888">'+esc(x.pn||'')+'</div>';
+          html+='<div class="lx-ptcell" style="background:'+bg+'"><span class="lx-ptbadge" style="background:'+lbg+';color:'+lfc+'">'+lbl+'</span></div>';
+          html+='<div class="lx-ptcell" style="background:'+bg+';font-size:12px;color:'+dlc+'">'+dl+'</div>';
+          html+='<div class="lx-ptcell" style="background:'+bg+'"><span class="lx-ptbadge" style="background:'+sbg+';color:'+sfc+'">'+sbl+'</span></div>';
+          html+='</div>';
+        });
+      }
+
+      // Add task row
+      html+='<div style="padding:8px 16px;background:#ffffff;border-top:1px solid #f5f5f2" data-lxpid="'+p.id+'">';
+      html+='<button class="lx-ptadd-btn" onclick="lxPtAdd(''+p.id+'')">+ Add task</button>';
+      html+='</div>';
+      html+='</div>';
+    });
+    el.innerHTML=html;
+  }
+
+  window.lxPtToggle=function(pid,projId,tid){
+    var pr=getPri();
+    pr.forEach(function(p){
+      if(p.id!==pid)return;
+      (p.projects||[]).forEach(function(proj){
+        if(proj.id!==projId)return;
+        proj.tasks=(proj.tasks||[]).map(function(t){return t.id===tid?Object.assign({},t,{done:!t.done}):t;});
+      });
+    });
+    savePri(pr);renderTable();
+  };
+
+  window.lxPtClick=function(pid,projId,tid){
+    var pr=getPri(),task=null,D=null;
+    pr.forEach(function(p){
+      if(p.id!==pid)return;
+      (p.projects||[]).forEach(function(proj){
+        if(proj.id!==projId)return;
+        (proj.tasks||[]).forEach(function(t){
+          if(t.id!==tid)return;
+          task=t;
+          D=function(pp,newTasks){
+            var pr2=getPri();
+            pr2.forEach(function(p2){
+              if(p2.id!==pid)return;
+              (p2.projects||[]).forEach(function(pr3){if(pr3.id===pp)pr3.tasks=newTasks;});
+            });
+            savePri(pr2);renderTable();
+          };
+        });
+      });
+    });
+    if(task&&window.__lxEdit)window.__lxEdit(task,projId,D);
+  };
+
+  window.lxPtAdd=function(pid){
+    var wrap=document.querySelector('[data-lxpid="'+pid+'"]');
+    if(!wrap)return;
+    wrap.innerHTML='<input class="lx-pt-inp" placeholder="Task name — press Enter to save" autocomplete="off"/>';
+    var inp=wrap.querySelector('input');
+    if(!inp)return;
+    inp.focus();
+    function commit(){
+      var text=inp.value.trim();
+      if(text){
+        var pr=getPri();
+        pr.forEach(function(p){
+          if(p.id!==pid)return;
+          if(!p.projects||!p.projects.length)p.projects=[{id:uid(),name:'General',tasks:[]}];
+          var proj=p.projects[0];
+          (proj.tasks=proj.tasks||[]).push({id:uid(),text:text,done:false,leverage:'high',deadline:null,notes:''});
+        });
+        savePri(pr);
+      }
+      renderTable();
+    }
+    inp.onblur=commit;
+    inp.onkeydown=function(e){
+      if(e.key==='Enter'){e.preventDefault();inp.blur();}
+      if(e.key==='Escape'){e.preventDefault();renderTable();}
+      e.stopPropagation();
+    };
+  };
+
+  // Inject into dashboard, hide React's priority section
+  function hideReact(main){
+    Array.from(main.children).forEach(function(c){
+      if((!c.id||!c.id.startsWith('lx-'))&&!c.getAttribute('data-lxhide')){
+        c.setAttribute('data-lxhide','1');
+        c.style.display='none';
+      }
+    });
+  }
+
+  function updateVis(){
+    var main=document.querySelector('main');
+    var holder=document.getElementById('lx-ptable-holder');
+    if(!main||!holder)return;
+    var isDash=/good (morning|afternoon|evening)/i.test(main.textContent);
+    if(isDash&&!main.contains(holder)){
+      holder.style.display='block';
+      main.appendChild(holder);
+      hideReact(main);
+      renderTable();
+    } else if(!isDash&&main.contains(holder)){
+      document.body.appendChild(holder);
+      holder.style.display='none';
+    }
+  }
+
+  var obs=new MutationObserver(updateVis);
+  function startWatch(){
+    var main=document.querySelector('main');
+    if(main){obs.observe(main,{childList:true,subtree:false});updateVis();}
+    else{
+      var bo=new MutationObserver(function(){
+        var m=document.querySelector('main');
+        if(m){bo.disconnect();obs.observe(m,{childList:true,subtree:false});updateVis();}
+      });
+      bo.observe(document.body,{childList:true,subtree:true});
+    }
+  }
+  document.readyState==='loading'
+    ?document.addEventListener('DOMContentLoaded',startWatch)
+    :startWatch();
+})();
+</script>
+
+  
 <style>
 #lx-edit-overlay{
   display:none;position:fixed;inset:0;z-index:10000;
