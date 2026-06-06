@@ -442,5 +442,112 @@ react/cjs/react-jsx-runtime.production.js:
    *)
 */
 </script>
+  <script>
+(function(){
+  var L2D={
+    '#f9f9f8':'#09090b','#ffffff':'#18181b','#f0f0ed':'#27272a',
+    '#e4e4e0':'#3f3f46','#d0d0cc':'#52525b',
+    'rgba(108,99,255,0.08)':'rgba(124,106,255,0.10)',
+    '#111111':'#fafafa','#888888':'#a1a1aa','#f4f4f1':'#2d2d32',
+    '#16a34a':'#4ade80','#dc2626':'#f87171','#d97706':'#fbbf24',
+    '#0284c7':'#38bdf8','#ede9fe':'#c7d2fe','#ea580c':'#fb923c',
+    '#6c63ff':'#818cf8',
+    '#222':'#e8e8e8','#c8c8c4':'#555566','#f5f5f2':'#222228',
+    '#c0c0bc':'#555566'
+  };
+  var D2L={};for(var k in L2D)D2L[L2D[k]]=k;
+
+  var mode=localStorage.getItem('lx4_theme')||'light';
+
+  // Kill flash of white on dark-mode reload
+  if(mode==='dark'){
+    var pre=document.createElement('style');
+    pre.id='lx-pre-dark';
+    pre.textContent='html,body{background:#09090b!important;color:#fafafa!important}';
+    (document.head||document.documentElement).appendChild(pre);
+  }
+
+  function swapEl(el,map){
+    if(!el||el.nodeType!==1)return;
+    var s=el.getAttribute('style');if(!s)return;
+    var ns=s;for(var c in map)ns=ns.split(c).join(map[c]);
+    if(ns!==s)el.setAttribute('style',ns);
+  }
+  function swapAll(map){
+    document.querySelectorAll('[style]').forEach(function(el){swapEl(el,map);});
+  }
+
+  var obs=new MutationObserver(function(muts){
+    if(mode!=='dark')return;
+    muts.forEach(function(m){
+      if(m.type==='attributes'&&m.attributeName==='style')swapEl(m.target,L2D);
+      else m.addedNodes.forEach(function(n){
+        if(n.nodeType!==1)return;
+        swapEl(n,L2D);
+        n.querySelectorAll&&n.querySelectorAll('[style]').forEach(function(e){swapEl(e,L2D);});
+      });
+    });
+  });
+
+  function setDark(){
+    swapAll(L2D);
+    document.body.style.background='#09090b';
+    document.body.style.color='#fafafa';
+    obs.observe(document.body,{attributes:true,attributeFilter:['style'],childList:true,subtree:true});
+  }
+  function setLight(){
+    obs.disconnect();
+    swapAll(D2L);
+    document.body.style.background='#f9f9f8';
+    document.body.style.color='#111111';
+    var pre=document.getElementById('lx-pre-dark');if(pre)pre.remove();
+  }
+
+  function updateBtn(){
+    var b=document.getElementById('lx-theme-btn');if(!b)return;
+    if(mode==='dark'){
+      b.textContent='☀️ Light';
+      b.style.background='#27272a';b.style.color='#fafafa';b.style.borderColor='#3f3f46';
+    }else{
+      b.textContent='🌙 Dark';
+      b.style.background='#f4f4f1';b.style.color='#555555';b.style.borderColor='#e4e4e0';
+    }
+  }
+
+  window.lxSetTheme=function(m){
+    mode=m;localStorage.setItem('lx4_theme',m);
+    if(m==='dark')setDark();else setLight();
+    updateBtn();
+  };
+
+  // Fixed-position button at bottom of sidebar column
+  function injectBtn(){
+    if(document.getElementById('lx-theme-btn'))return true;
+    if(!document.body)return false;
+    var wrap=document.createElement('div');
+    wrap.id='lx-theme-wrap';
+    wrap.style.cssText='position:fixed;bottom:0;left:0;width:220px;padding:10px 12px;z-index:5000;';
+    var btn=document.createElement('button');
+    btn.id='lx-theme-btn';
+    btn.onclick=function(){window.lxSetTheme(mode==='dark'?'light':'dark');};
+    btn.style.cssText='width:100%;padding:9px 12px;border-radius:8px;cursor:pointer;'+
+      'font-size:12px;font-family:Inter,sans-serif;font-weight:500;'+
+      'letter-spacing:0.01em;border-width:1px;border-style:solid;transition:all 0.2s;';
+    wrap.appendChild(btn);
+    document.body.appendChild(wrap);
+    updateBtn();
+    return true;
+  }
+
+  function init(){
+    injectBtn();
+    if(mode==='dark')setDark();
+  }
+
+  document.readyState==='loading'
+    ?document.addEventListener('DOMContentLoaded',function(){setTimeout(init,300);})
+    :setTimeout(init,300);
+})();
+</script>
 </body>
 </html>
