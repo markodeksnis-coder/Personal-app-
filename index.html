@@ -29,48 +29,83 @@
   
 <div id="lx-today-holder" style="display:none">
 <style>
-#lx-today{margin-bottom:28px}
+/* ── Stat cards ──────────────────────────────────────────── */
+#lx-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.lx-sc{border-radius:16px;padding:20px 22px;color:#fff;position:relative;overflow:hidden;min-height:110px;display:flex;flex-direction:column;justify-content:space-between}
+.lx-sc-lbl{font-size:10px;font-weight:700;letter-spacing:.11em;opacity:.8;text-transform:uppercase}
+.lx-sc-val{font-size:36px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
+.lx-sc-sub{font-size:11px;opacity:.65;font-weight:500}
+.lx-sc-ico{position:absolute;right:-6px;bottom:-10px;font-size:64px;opacity:.15;pointer-events:none;line-height:1;transform:rotate(-10deg)}
+/* ── Today panels ────────────────────────────────────────── */
+#lx-today{margin-bottom:24px}
 #lx-today-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.lx-panel{background:#fff;border:1px solid #e4e4e0;border-radius:10px;padding:18px 20px}
-.lx-panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.lx-panel-title{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.09em;color:#999}
+.lx-panel{background:#fff;border:1px solid #e4e4e0;border-radius:14px;overflow:hidden}
+.lx-panel-hdr{padding:14px 18px 12px;border-bottom:1px solid #f0f0ee;display:flex;align-items:center;justify-content:space-between}
+.lx-panel-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
 .lx-panel-date{font-size:11px;color:#c8c8c4}
+.lx-panel-body{padding:12px 18px}
 .lx-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f5f2}
 .lx-item:last-child{border-bottom:none}
-.lx-cb{width:17px;height:17px;border-radius:50%;border:1.5px solid #d4d4d0;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
-.lx-cb:hover{border-color:#6c63ff}
+.lx-cb{width:18px;height:18px;border-radius:50%;border:2px solid #d4d4d0;background:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.lx-cb:hover{border-color:#6c63ff;transform:scale(1.1)}
 .lx-cb.done{background:#6c63ff;border-color:#6c63ff}
 .lx-cb.done::after{content:'✓';color:#fff;font-size:10px;font-weight:700;line-height:1}
 .lx-item-text{flex:1;font-size:13px;color:#222;line-height:1.4}
 .lx-item-text.done{text-decoration:line-through;color:#c0c0bc}
-.lx-item-del{width:18px;height:18px;border:none;background:none;color:#d4d4d0;font-size:13px;cursor:pointer;flex-shrink:0;padding:0;line-height:1;opacity:0;transition:opacity 0.1s;display:flex;align-items:center;justify-content:center}
+.lx-item-del{width:18px;height:18px;border:none;background:none;color:#d4d4d0;font-size:13px;cursor:pointer;flex-shrink:0;padding:0;line-height:1;opacity:0;transition:opacity .1s;display:flex;align-items:center;justify-content:center}
 .lx-item:hover .lx-item-del{opacity:1}
 .lx-item-del:hover{color:#ef4444}
-.lx-add-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f2}
+.lx-add-row{display:flex;align-items:center;gap:8px;padding:9px 18px;border-top:1px solid #f5f5f2;background:#fafafa}
 .lx-add-inp{flex:1;border:none;outline:none;font-family:'Inter',sans-serif;font-size:13px;color:#222;background:none;padding:2px 0}
 .lx-add-inp::placeholder{color:#c8c8c4}
-.lx-add-btn{width:24px;height:24px;border-radius:6px;border:1px solid #e4e4e0;background:#f5f5f2;color:#999;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;padding:0;line-height:1}
+.lx-add-btn{width:24px;height:24px;border-radius:6px;border:1px solid #e4e4e0;background:#f5f5f2;color:#999;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;padding:0;line-height:1}
 .lx-add-btn:hover{background:#6c63ff18;border-color:#6c63ff;color:#6c63ff}
 .lx-empty{font-size:12px;color:#c8c8c4;padding:8px 0}
 </style>
 <div id="lx-today">
+  <div id="lx-stats">
+    <div class="lx-sc" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+      <div class="lx-sc-lbl">Priorities</div>
+      <div class="lx-sc-val" id="lx-sc-pri">—</div>
+      <div class="lx-sc-sub">tasks done</div>
+      <div class="lx-sc-ico">🎯</div>
+    </div>
+    <div class="lx-sc" style="background:linear-gradient(135deg,#f7971e,#ffd200)">
+      <div class="lx-sc-lbl">Non-Negs</div>
+      <div class="lx-sc-val" id="lx-sc-nn">—</div>
+      <div class="lx-sc-sub">completed today</div>
+      <div class="lx-sc-ico">⚡</div>
+    </div>
+    <div class="lx-sc" style="background:linear-gradient(135deg,#11998e,#38ef7d)">
+      <div class="lx-sc-lbl">Today's Plan</div>
+      <div class="lx-sc-val" id="lx-sc-plan">—</div>
+      <div class="lx-sc-sub">tasks done</div>
+      <div class="lx-sc-ico">📋</div>
+    </div>
+    <div class="lx-sc" style="background:linear-gradient(135deg,#ee0979,#ff6a00)">
+      <div class="lx-sc-lbl">This Week</div>
+      <div class="lx-sc-val" id="lx-sc-week">—</div>
+      <div class="lx-sc-sub">calls + meetings</div>
+      <div class="lx-sc-ico">📞</div>
+    </div>
+  </div>
   <div id="lx-today-grid">
     <div class="lx-panel">
-      <div class="lx-panel-hdr">
-        <span class="lx-panel-title">Non-Negotiables</span>
+      <div class="lx-panel-hdr" style="background:linear-gradient(90deg,#667eea12,transparent)">
+        <span class="lx-panel-title" style="color:#667eea">Non-Negotiables</span>
         <span class="lx-panel-date" id="lx-nn-date"></span>
       </div>
-      <div id="lx-nn-list"></div>
+      <div class="lx-panel-body"><div id="lx-nn-list"></div></div>
       <div class="lx-add-row">
         <input class="lx-add-inp" id="lx-nn-inp" placeholder="Add recurring item…" autocomplete="off"/>
         <button class="lx-add-btn" onclick="lxNnAdd()" title="Add">+</button>
       </div>
     </div>
     <div class="lx-panel">
-      <div class="lx-panel-hdr">
-        <span class="lx-panel-title">Today's Plan</span>
+      <div class="lx-panel-hdr" style="background:linear-gradient(90deg,#11998e12,transparent)">
+        <span class="lx-panel-title" style="color:#0d9488">Today's Plan</span>
       </div>
-      <div id="lx-plan-list"></div>
+      <div class="lx-panel-body"><div id="lx-plan-list"></div></div>
       <div class="lx-add-row">
         <input class="lx-add-inp" id="lx-plan-inp" placeholder="Add task…" autocomplete="off"/>
         <button class="lx-add-btn" onclick="lxPlanAdd()" title="Add">+</button>
@@ -96,6 +131,35 @@
   // ── Day Planner storage ────────────────────────────────────────────────
   function getPlan(){ try{return JSON.parse(localStorage.getItem('lx4_plan_'+TODAY)||'[]');}catch(e){return[];} }
   function savePlan(d){ localStorage.setItem('lx4_plan_'+TODAY,JSON.stringify(d)); }
+
+  // ── Dashboard stat cards ───────────────────────────────────────────────
+  function getPriStats(){
+    var pri=[];try{pri=JSON.parse(localStorage.getItem('lx4_pri')||'[]');}catch(e){}
+    var done=0,total=0;
+    pri.forEach(function(p){(p.projects||[]).forEach(function(proj){(proj.tasks||[]).forEach(function(t){total++;if(t.done)done++;});});});
+    return{done:done,total:total};
+  }
+  function weeklySum(key){
+    var total=0;
+    for(var i=0;i<7;i++){
+      var d=new Date();d.setDate(d.getDate()-i);
+      try{total+=(JSON.parse(localStorage.getItem('lx4_d_'+d.toISOString().slice(0,10))||'{}')[key]||0);}catch(e){}
+    }
+    return total;
+  }
+  function updateStats(){
+    var ps=getPriStats();
+    var tpl=getNnTpl(),st=getNnState();
+    var nnDone=tpl.filter(function(x){return!!st[x.id];}).length;
+    var plan=getPlan();
+    var planDone=plan.filter(function(x){return x.done;}).length;
+    var wk=weeklySum('calls')+weeklySum('meetings');
+    function sv(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+    sv('lx-sc-pri',ps.total?ps.done+'/'+ps.total:'0');
+    sv('lx-sc-nn',tpl.length?nnDone+'/'+tpl.length:'0');
+    sv('lx-sc-plan',plan.length?planDone+'/'+plan.length:'0');
+    sv('lx-sc-week',wk||'0');
+  }
 
   // ── Render Non-Negotiables ─────────────────────────────────────────────
   function renderNn(){
@@ -185,7 +249,7 @@
       main.insertBefore(holder,main.firstChild);
       var d=new Date(); var el=document.getElementById('lx-nn-date');
       if(el) el.textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-      renderNn(); renderPlan();
+      renderNn(); renderPlan(); updateStats();
     } else if(!isDash && main.contains(holder)){
       document.body.appendChild(holder);
       holder.style.display='none';
@@ -436,6 +500,199 @@
   document.readyState==='loading'
     ?document.addEventListener('DOMContentLoaded',startWatch)
     :startWatch();
+})();
+</script>
+
+  
+<div id="lx-kpi-holder" style="display:none">
+<style>
+#lx-kpi{font-family:'Inter',Arial,sans-serif;margin-bottom:28px}
+.lx-kh{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px}
+.lx-kh-title{font-size:20px;font-weight:800;color:#111;letter-spacing:-.4px}
+.lx-kh-date{font-size:12px;color:#888;font-weight:500}
+.lx-kcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.lx-kcard{border-radius:16px;padding:22px 24px;color:#fff;position:relative;overflow:hidden;min-height:116px;display:flex;flex-direction:column;gap:4px}
+.lx-kcard-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;opacity:.75;text-transform:uppercase}
+.lx-kcard-val{font-size:42px;font-weight:900;line-height:1;letter-spacing:-.5px}
+.lx-kcard-sub{font-size:12px;opacity:.6;font-weight:500}
+.lx-kcard-bg{position:absolute;right:-10px;bottom:-14px;font-size:80px;opacity:.12;pointer-events:none;line-height:1}
+.lx-krow{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:16px}
+.lx-kbox{background:#fff;border:1px solid #e8e8e4;border-radius:16px;padding:22px}
+.lx-kbox-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:#999;text-transform:uppercase;margin-bottom:18px}
+.lx-kdonuts{display:flex;align-items:center;justify-content:space-around;gap:8px}
+.lx-kprog{margin-bottom:16px}
+.lx-kprog:last-child{margin-bottom:0}
+.lx-kprog-top{display:flex;justify-content:space-between;margin-bottom:6px}
+.lx-kprog-lbl{font-size:12px;font-weight:600;color:#222}
+.lx-kprog-num{font-size:12px;color:#888}
+.lx-kprog-track{height:10px;background:#f0f0ee;border-radius:5px;overflow:hidden}
+.lx-kprog-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.lx-kbar-box{background:#fff;border:1px solid #e8e8e4;border-radius:16px;padding:22px}
+.lx-kbar-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:#999;text-transform:uppercase;margin-bottom:14px}
+.lx-klegend{display:flex;gap:20px;margin-top:12px;justify-content:center}
+.lx-kleg{display:flex;align-items:center;gap:6px;font-size:11px;color:#888;font-weight:500}
+.lx-kleg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+</style>
+<div id="lx-kpi"></div>
+</div>
+
+<script>
+(function(){
+  function gd(i){
+    var d=new Date();d.setDate(d.getDate()-(i||0));
+    try{return JSON.parse(localStorage.getItem('lx4_d_'+d.toISOString().slice(0,10))||'{}');}catch(e){return{};}
+  }
+  function goals(){try{return JSON.parse(localStorage.getItem('lx4_goals')||'{}');}catch(e){return{};}}
+  function pri(){try{return JSON.parse(localStorage.getItem('lx4_pri')||'[]');}catch(e){return[];}}
+  function nnTpl(){try{return JSON.parse(localStorage.getItem('lx4_nn_tpl')||'[]');}catch(e){return[];}}
+  function nnSt(){var t=new Date().toISOString().slice(0,10);try{return JSON.parse(localStorage.getItem('lx4_nn_'+t)||'{}');}catch(e){return{};}}
+  function wsum(k){var t=0;for(var i=0;i<7;i++)t+=(gd(i)[k]||0);return t;}
+  function darr(k){var a=[];for(var i=6;i>=0;i--)a.push(gd(i)[k]||0);return a;}
+
+  function donut(pct,color,label,sub){
+    var R=50,C=2*Math.PI*R,dash=Math.min(pct/100,1)*C;
+    var id='dg'+Math.random().toString(36).slice(2,5);
+    return '<svg viewBox="0 0 160 160" style="width:140px;height:140px;flex-shrink:0">'+
+      '<defs><linearGradient id="'+id+'" x1="0%" y1="0%" x2="100%" y2="100%">'+
+      '<stop offset="0%" stop-color="'+color+'"/><stop offset="100%" stop-color="'+color+'" stop-opacity=".65"/></linearGradient></defs>'+
+      '<circle cx="80" cy="80" r="'+R+'" fill="none" stroke="#f0f0ee" stroke-width="13"/>'+
+      '<circle cx="80" cy="80" r="'+R+'" fill="none" stroke="url(#'+id+')" stroke-width="13"'+
+      ' stroke-dasharray="'+dash.toFixed(1)+' '+C.toFixed(1)+'" stroke-linecap="round" transform="rotate(-90 80 80)"/>'+
+      '<text x="80" y="74" text-anchor="middle" font-family="Inter,sans-serif" font-size="24" font-weight="800" fill="'+color+'">'+Math.round(pct)+'%</text>'+
+      '<text x="80" y="92" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#666">'+label+'</text>'+
+      (sub?'<text x="80" y="107" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#bbb">'+sub+'</text>':'')+
+      '</svg>';
+  }
+
+  function bars(datasets){
+    var W=480,H=90,PAD=6,n=7,gW=W/n;
+    var bw=Math.max(4,Math.floor(gW/(datasets.length+2))),bg=2;
+    var max=1;
+    datasets.forEach(function(ds){ds.d.forEach(function(v){if(v>max)max=v;});});
+    var svg='<svg viewBox="0 0 '+W+' '+(H+22)+'" style="width:100%">';
+    [.25,.5,.75,1].forEach(function(f){
+      var y=PAD+Math.round((H-PAD)*(1-f));
+      svg+='<line x1="0" y1="'+y+'" x2="'+W+'" y2="'+y+'" stroke="#f5f5f2" stroke-width="1"/>';
+    });
+    for(var i=0;i<n;i++){
+      var cx=i*gW+gW/2;
+      var offset=-(datasets.length*(bw+bg))/2+bg/2;
+      datasets.forEach(function(ds,si){
+        var v=ds.d[i];
+        var bh=Math.max(v>0?3:0,Math.round((v/max)*(H-PAD)));
+        var bx=Math.round(cx+offset+si*(bw+bg));
+        if(bh>0)svg+='<rect x="'+bx+'" y="'+(H-bh)+'" width="'+bw+'" height="'+bh+'" rx="3" fill="'+ds.c+'"/>';
+      });
+      var dd=new Date();dd.setDate(dd.getDate()-(6-i));
+      svg+='<text x="'+cx+'" y="'+(H+17)+'" text-anchor="middle" font-size="9" fill="#c0c0bc" font-family="Inter,sans-serif">'+['S','M','T','W','T','F','S'][dd.getDay()]+'</text>';
+    }
+    return svg+'</svg>';
+  }
+
+  function prog(label,val,goal,color){
+    var pct=goal>0?Math.min(val/goal*100,100):0;
+    var hi=val>=goal&&goal>0;
+    return '<div class="lx-kprog">'+
+      '<div class="lx-kprog-top">'+
+      '<span class="lx-kprog-lbl">'+label+'</span>'+
+      '<span class="lx-kprog-num" style="color:'+(hi?'#059669':'#888')+'">'+val+(goal>0?'/'+goal:'')+(hi?' ✓':'')+'</span>'+
+      '</div>'+
+      '<div class="lx-kprog-track"><div class="lx-kprog-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'+
+      '</div>';
+  }
+
+  function renderKpi(){
+    var el=document.getElementById('lx-kpi');if(!el)return;
+    var g=goals();
+    var p=pri(),tpl=nnTpl(),st=nnSt();
+    var wSms=wsum('sms'),wCalls=wsum('calls'),wMeets=wsum('meetings');
+    var priDone=0,priTotal=0;
+    p.forEach(function(pr){(pr.projects||[]).forEach(function(pj){(pj.tasks||[]).forEach(function(t){priTotal++;if(t.done)priDone++;});});});
+    var nnDone=tpl.filter(function(x){return!!st[x.id];}).length;
+    var taskPct=priTotal?priDone/priTotal*100:0;
+    var callPct=g.calls?Math.min(wCalls/g.calls*100,100):0;
+    var meetPct=g.meetings?Math.min(wMeets/g.meetings*100,100):0;
+    var smsPct=g.sms?Math.min(wSms/g.sms*100,100):0;
+    var nnPct=tpl.length?nnDone/tpl.length*100:0;
+    var today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    var html=
+      '<div class="lx-kh"><div class="lx-kh-title">📊 Performance</div><div class="lx-kh-date">'+today+'</div></div>'+
+      '<div class="lx-kcards">'+
+      '<div class="lx-kcard" style="background:linear-gradient(135deg,#7c3aed,#a855f7)">'+
+        '<div class="lx-kcard-lbl">SMS This Week</div>'+
+        '<div class="lx-kcard-val">'+wSms+'</div>'+
+        '<div class="lx-kcard-sub">'+(g.sms?smsPct.toFixed(0)+'% of '+g.sms+' goal':'track in the metrics bar')+'</div>'+
+        '<div class="lx-kcard-bg">💬</div></div>'+
+      '<div class="lx-kcard" style="background:linear-gradient(135deg,#0891b2,#06b6d4)">'+
+        '<div class="lx-kcard-lbl">Calls This Week</div>'+
+        '<div class="lx-kcard-val">'+wCalls+'</div>'+
+        '<div class="lx-kcard-sub">'+(g.calls?callPct.toFixed(0)+'% of '+g.calls+' goal':'track in the metrics bar')+'</div>'+
+        '<div class="lx-kcard-bg">📞</div></div>'+
+      '<div class="lx-kcard" style="background:linear-gradient(135deg,#db2777,#f472b6)">'+
+        '<div class="lx-kcard-lbl">Meetings Booked</div>'+
+        '<div class="lx-kcard-val">'+wMeets+'</div>'+
+        '<div class="lx-kcard-sub">'+(g.meetings?meetPct.toFixed(0)+'% of '+g.meetings+' goal':'track in the metrics bar')+'</div>'+
+        '<div class="lx-kcard-bg">🤝</div></div>'+
+      '</div>'+
+      '<div class="lx-krow">'+
+        '<div class="lx-kbox">'+
+          '<div class="lx-kbox-title">Completion Rates</div>'+
+          '<div class="lx-kdonuts">'+
+            donut(taskPct,'#7c3aed','Tasks',priDone+'/'+priTotal)+
+            donut(callPct,'#0891b2','Calls',wCalls+(g.calls?'/'+g.calls:''))+
+            donut(nnPct,'#059669','Non-Negs',nnDone+'/'+tpl.length)+
+          '</div>'+
+        '</div>'+
+        '<div class="lx-kbox">'+
+          '<div class="lx-kbox-title">Goal Progress</div>'+
+          prog('SMS Sent',wSms,g.sms||0,'linear-gradient(90deg,#7c3aed,#a855f7)')+
+          prog('Calls',wCalls,g.calls||0,'linear-gradient(90deg,#0891b2,#22d3ee)')+
+          prog('Meetings',wMeets,g.meetings||0,'linear-gradient(90deg,#db2777,#f472b6)')+
+          prog('Tasks Done',priDone,priTotal,'linear-gradient(90deg,#059669,#10b981)')+
+          prog('Non-Negs',nnDone,tpl.length,'linear-gradient(90deg,#d97706,#fbbf24)')+
+        '</div>'+
+      '</div>'+
+      '<div class="lx-kbar-box">'+
+        '<div class="lx-kbar-title">Daily Activity — Last 7 Days</div>'+
+        bars([
+          {c:'#818cf8',d:darr('sms')},
+          {c:'#22d3ee',d:darr('calls')},
+          {c:'#f472b6',d:darr('meetings')}
+        ])+
+        '<div class="lx-klegend">'+
+          '<div class="lx-kleg"><div class="lx-kleg-dot" style="background:#818cf8"></div>SMS</div>'+
+          '<div class="lx-kleg"><div class="lx-kleg-dot" style="background:#22d3ee"></div>Calls</div>'+
+          '<div class="lx-kleg"><div class="lx-kleg-dot" style="background:#f472b6"></div>Meetings</div>'+
+        '</div>'+
+      '</div>';
+    el.innerHTML=html;
+  }
+
+  function updateKpiVis(){
+    var main=document.querySelector('main');
+    var holder=document.getElementById('lx-kpi-holder');
+    if(!main||!holder)return;
+    var isKpi=/Log KPIs/i.test(main.textContent);
+    if(isKpi&&!main.contains(holder)){
+      holder.style.display='block';
+      main.insertBefore(holder,main.firstChild);
+      renderKpi();
+    }else if(!isKpi&&main.contains(holder)){
+      document.body.appendChild(holder);
+      holder.style.display='none';
+    }
+  }
+
+  var kObs=new MutationObserver(updateKpiVis);
+  function startKpi(){
+    var main=document.querySelector('main');
+    if(main){kObs.observe(main,{childList:true,subtree:false});updateKpiVis();}
+    else{
+      var bo=new MutationObserver(function(){var m=document.querySelector('main');if(m){bo.disconnect();kObs.observe(m,{childList:true,subtree:false});updateKpiVis();}});
+      bo.observe(document.body,{childList:true,subtree:true});
+    }
+  }
+  document.readyState==='loading'?document.addEventListener('DOMContentLoaded',startKpi):startKpi();
 })();
 </script>
 
