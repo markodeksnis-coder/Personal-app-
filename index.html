@@ -27,7 +27,7 @@
 </head>
 <body>
   
-<div id="lx-dash-holder" style="display:none;position:fixed;left:220px;top:0;right:0;bottom:0;overflow-y:auto;z-index:200;background:#09090b">
+<div id="lx-dash-holder" style="display:block;position:fixed;left:220px;top:0;right:0;bottom:0;overflow-y:auto;z-index:200;background:#09090b">
 <style>
 #lx-dash{font-family:'Inter',Arial,sans-serif;padding:36px}
 
@@ -464,7 +464,7 @@
 
   function isDash(){
     var main=document.querySelector('main');
-    if(!main)return false;
+    if(!main||main.textContent.trim().length<30)return true; // React not ready — keep showing
     var t=main.textContent;
     return /good (morning|afternoon|evening)/i.test(t)||
            /Non.Negotiables/i.test(t)||
@@ -475,7 +475,6 @@
     if(!holder)return;
     if(isDash()){
       holder.style.display='block';
-      renderAll();
     } else {
       holder.style.display='none';
     }
@@ -489,6 +488,8 @@
     setInterval(updateVis,1000);
     updateVis();
   }
+  // Render immediately (data is in localStorage, no React needed)
+  renderAll();
   document.readyState==='loading'?document.addEventListener('DOMContentLoaded',startWatch):startWatch();
 })();
 </script>
