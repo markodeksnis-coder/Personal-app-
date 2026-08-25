@@ -84,6 +84,11 @@
   #empty-state, #loading-state{padding:40px 16px;text-align:center;color:var(--text-mute);font-size:13.5px;}
   #error-state{padding:16px;text-align:center;color:var(--danger);font-size:13.5px;display:none;}
   #error-state.show{display:block;}
+  #demo-banner{
+    background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.3);color:var(--accent);
+    font-size:12.5px;font-weight:600;padding:10px 14px;border-radius:8px;margin-bottom:16px;
+  }
+  #demo-banner code{background:rgba(129,140,248,.15);padding:1px 5px;border-radius:4px;font-family:inherit;}
 </style>
 </head>
 <body>
@@ -112,6 +117,7 @@
   </div>
 
   <div id="leads-view">
+    <div id="demo-banner" style="display:none;">Demo data &mdash; connect Supabase in <code>BACKEND_SETUP.md</code> to see real opt-ins here.</div>
     <div class="toolbar">
       <span class="count" id="leads-count"></span>
       <button id="refresh-btn">Refresh</button>
@@ -144,6 +150,16 @@
   var SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
   var SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-PUBLIC-KEY";
 
+  // True until you paste real values above. Shows sample data with no login
+  // required, so you can see what this page looks like before Supabase is wired up.
+  var DEMO_MODE = SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1;
+
+  var DEMO_LEADS = [
+    { created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), name: 'Jordan Blake', email: 'jordan@blakeoutreach.com', phone: '(512) 555-0148', source: 'landing.html' },
+    { created_at: new Date(Date.now() - 26 * 3600 * 1000).toISOString(), name: 'Priya Nair', email: 'priya@nairgrowth.io', phone: '(415) 555-0173', source: 'landing.html' },
+    { created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), name: 'Marcus Webb', email: 'marcus@webbleads.com', phone: '(206) 555-0122', source: 'landing.html' }
+  ];
+
   var SESSION_KEY = 'leyvix_admin_session';
 
   var loginCard = document.getElementById('login-card');
@@ -170,8 +186,9 @@
 
   function showLoggedIn(){
     loginCard.style.display = 'none';
-    signoutBtn.style.display = 'inline-block';
+    signoutBtn.style.display = DEMO_MODE ? 'none' : 'inline-block';
     leadsView.style.display = 'block';
+    document.getElementById('demo-banner').style.display = DEMO_MODE ? 'block' : 'none';
     loadLeads();
   }
 
@@ -237,21 +254,52 @@
       ' ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
   }
 
-  function loadLeads(){
-    var session = getSession();
-    if (!session) { showLoggedOut(); return; }
+  function renderLeads(leads){
+    var loading = document.getElementById('loading-state');
+    var empty = document.getElementById('empty-state');
+    var tableWrap = document.getElementById('table-wrap');
+    var tbody = document.getElementById('leads-tbody');
+    var countEl = document.getElementById('leads-count');
 
+    loading.style.display = 'none';
+    countEl.textContent = leads.length + (leads.length === 1 ? ' opt-in' : ' opt-ins');
+
+    if (leads.length === 0) {
+      empty.style.display = 'block';
+      tableWrap.style.display = 'none';
+      return;
+    }
+
+    tbody.innerHTML = leads.map(function(lead){
+      return '<tr>' +
+        '<td class="date">' + escapeHtml(formatDate(lead.created_at)) + '</td>' +
+        '<td class="name">' + escapeHtml(lead.name || '') + '</td>' +
+        '<td>' + escapeHtml(lead.email || '') + '</td>' +
+        '<td>' + escapeHtml(lead.phone || '') + '</td>' +
+        '<td>' + escapeHtml(lead.source || '') + '</td>' +
+        '</tr>';
+    }).join('');
+    tableWrap.style.display = 'block';
+  }
+
+  function loadLeads(){
     var loading = document.getElementById('loading-state');
     var empty = document.getElementById('empty-state');
     var errorState = document.getElementById('error-state');
     var tableWrap = document.getElementById('table-wrap');
-    var tbody = document.getElementById('leads-tbody');
-    var countEl = document.getElementById('leads-count');
 
     loading.style.display = 'block';
     empty.style.display = 'none';
     errorState.classList.remove('show');
     tableWrap.style.display = 'none';
+
+    if (DEMO_MODE) {
+      setTimeout(function(){ renderLeads(DEMO_LEADS); }, 300);
+      return;
+    }
+
+    var session = getSession();
+    if (!session) { showLoggedOut(); return; }
 
     fetch(SUPABASE_URL + '/rest/v1/leads?select=*&order=created_at.desc', {
       headers: {
@@ -268,26 +316,7 @@
       if (!res.ok) throw new Error('request-failed');
       return res.json();
     })
-    .then(function(leads){
-      loading.style.display = 'none';
-      countEl.textContent = leads.length + (leads.length === 1 ? ' opt-in' : ' opt-ins');
-
-      if (leads.length === 0) {
-        empty.style.display = 'block';
-        return;
-      }
-
-      tbody.innerHTML = leads.map(function(lead){
-        return '<tr>' +
-          '<td class="date">' + escapeHtml(formatDate(lead.created_at)) + '</td>' +
-          '<td class="name">' + escapeHtml(lead.name || '') + '</td>' +
-          '<td>' + escapeHtml(lead.email || '') + '</td>' +
-          '<td>' + escapeHtml(lead.phone || '') + '</td>' +
-          '<td>' + escapeHtml(lead.source || '') + '</td>' +
-          '</tr>';
-      }).join('');
-      tableWrap.style.display = 'block';
-    })
+    .then(renderLeads)
     .catch(function(err){
       loading.style.display = 'none';
       if (err.message === 'session-expired') return;
@@ -296,7 +325,7 @@
     });
   }
 
-  if (getSession()) showLoggedIn();
+  if (DEMO_MODE || getSession()) showLoggedIn();
   else showLoggedOut();
 })();
 </script>
