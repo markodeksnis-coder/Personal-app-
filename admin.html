@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Leads &middot; Leyvix</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#09090b;
+    --panel:#111120;
+    --panel-2:#0f0f1e;
+    --border:#1e1e38;
+    --border-2:#252540;
+    --text:#fafafa;
+    --text-dim:#b8b8d8;
+    --text-mute:#6868a0;
+    --accent:#818cf8;
+    --accent-2:#22d3ee;
+    --danger:#f87171;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;padding:32px 20px 60px;}
+
+  header.site{display:flex;align-items:center;justify-content:space-between;padding-bottom:24px;border-bottom:1px solid var(--border);margin-bottom:28px;}
+  .logo{font-weight:900;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--text);}
+  .logo span{color:var(--accent);}
+  #signout-btn{display:none;background:transparent;border:1px solid var(--border-2);color:var(--text-dim);font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;}
+  #signout-btn:hover{border-color:var(--accent);color:#fff;}
+
+  /* Login */
+  #login-card{
+    max-width:380px;margin:80px auto 0;background:var(--panel);border:1px solid var(--border-2);
+    border-radius:16px;padding:28px;
+  }
+  #login-card h1{font-size:17px;font-weight:800;color:#fff;margin-bottom:4px;}
+  #login-card p.hint{font-size:13px;color:var(--text-mute);margin-bottom:18px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:11px;font-weight:700;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .field input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border-2);
+    background:#0a0a18;color:#fff;font-family:'Inter',sans-serif;font-size:14px;outline:none;
+  }
+  .field input:focus-visible{border-color:var(--accent);}
+  .btn{
+    width:100%;padding:13px 18px;border-radius:10px;border:none;
+    background:var(--accent);color:#0a0a14;font-family:'Inter',sans-serif;font-size:14.5px;font-weight:800;
+    cursor:pointer;margin-top:6px;
+  }
+  .btn:hover{opacity:.9;}
+  .btn:disabled{opacity:.6;cursor:default;}
+  #login-error{font-size:13px;color:var(--danger);margin-top:12px;display:none;}
+  #login-error.show{display:block;}
+
+  /* Leads table */
+  #leads-view{display:none;}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .count{font-size:13px;color:var(--text-mute);font-weight:600;}
+  #refresh-btn{background:transparent;border:1px solid var(--border-2);color:var(--text-dim);font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;}
+  #refresh-btn:hover{border-color:var(--accent);color:#fff;}
+
+  .table-wrap{border:1px solid var(--border);border-radius:12px;overflow:auto;}
+  table{width:100%;border-collapse:collapse;min-width:640px;}
+  thead th{
+    text-align:left;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text-mute);background:var(--panel-2);padding:12px 16px;border-bottom:1px solid var(--border);
+    white-space:nowrap;position:sticky;top:0;
+  }
+  tbody td{padding:12px 16px;font-size:13.5px;color:var(--text-dim);border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover td{background:rgba(129,140,248,.05);}
+  td.name{color:#fff;font-weight:600;}
+  td.date{color:var(--text-mute);font-variant-numeric:tabular-nums;}
+  #empty-state, #loading-state{padding:40px 16px;text-align:center;color:var(--text-mute);font-size:13.5px;}
+  #error-state{padding:16px;text-align:center;color:var(--danger);font-size:13.5px;display:none;}
+  #error-state.show{display:block;}
+  #demo-banner{
+    background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.3);color:var(--accent);
+    font-size:12.5px;font-weight:600;padding:10px 14px;border-radius:8px;margin-bottom:16px;
+  }
+  #demo-banner code{background:rgba(129,140,248,.15);padding:1px 5px;border-radius:4px;font-family:inherit;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="site">
+    <div class="logo">LEY<span>VIX</span> <span style="color:var(--text-mute);font-weight:600;">/ leads</span></div>
+    <button id="signout-btn">Sign out</button>
+  </header>
+
+  <div id="login-card">
+    <h1>Sign in</h1>
+    <p class="hint">Owner access only. Use the Supabase Auth login you created for this project.</p>
+    <form id="login-form" novalidate>
+      <div class="field">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" autocomplete="username" required/>
+      </div>
+      <div class="field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" required/>
+      </div>
+      <button type="submit" class="btn" id="login-submit">Sign In</button>
+      <p id="login-error"></p>
+    </form>
+  </div>
+
+  <div id="leads-view">
+    <div id="demo-banner" style="display:none;">Demo data &mdash; connect Supabase in <code>BACKEND_SETUP.md</code> to see real opt-ins here.</div>
+    <div class="toolbar">
+      <span class="count" id="leads-count"></span>
+      <button id="refresh-btn">Refresh</button>
+    </div>
+    <div id="loading-state">Loading leads&hellip;</div>
+    <div id="empty-state" style="display:none;">No opt-ins yet.</div>
+    <p id="error-state"></p>
+    <div class="table-wrap" id="table-wrap" style="display:none;">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="leads-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Same Supabase project as landing.html. Paste your project URL and anon
+  // public key below (see BACKEND_SETUP.md). Reading leads still requires a
+  // signed-in Supabase Auth user, even with the anon key present here.
+  var SUPABASE_URL = "https://xvaibxkspqmqkraydgha.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2YWlieGtzcHFtcWtyYXlkZ2hhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2NTI4MzgsImV4cCI6MjEwMzIyODgzOH0.gHMKsIu-V1tXQa66koiHFxdYR8jHp3PACyeGL0LbUVI";
+
+  // True until you paste real values above. Shows sample data with no login
+  // required, so you can see what this page looks like before Supabase is wired up.
+  var DEMO_MODE = SUPABASE_URL.indexOf('YOUR-PROJECT-REF') !== -1;
+
+  var DEMO_LEADS = [
+    { created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(), name: 'Jordan Blake', email: 'jordan@blakeoutreach.com', phone: '(512) 555-0148', source: 'landing.html' },
+    { created_at: new Date(Date.now() - 26 * 3600 * 1000).toISOString(), name: 'Priya Nair', email: 'priya@nairgrowth.io', phone: '(415) 555-0173', source: 'landing.html' },
+    { created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(), name: 'Marcus Webb', email: 'marcus@webbleads.com', phone: '(206) 555-0122', source: 'landing.html' }
+  ];
+
+  var SESSION_KEY = 'leyvix_admin_session';
+
+  var loginCard = document.getElementById('login-card');
+  var leadsView = document.getElementById('leads-view');
+  var loginForm = document.getElementById('login-form');
+  var loginEmail = document.getElementById('login-email');
+  var loginPassword = document.getElementById('login-password');
+  var loginSubmit = document.getElementById('login-submit');
+  var loginError = document.getElementById('login-error');
+  var signoutBtn = document.getElementById('signout-btn');
+  var refreshBtn = document.getElementById('refresh-btn');
+
+  function getSession(){
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); }
+    catch (e) { return null; }
+  }
+  function setSession(session){ sessionStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
+  function clearSession(){ sessionStorage.removeItem(SESSION_KEY); }
+
+  function showLoginError(text){
+    loginError.textContent = text;
+    loginError.classList.add('show');
+  }
+
+  function showLoggedIn(){
+    loginCard.style.display = 'none';
+    signoutBtn.style.display = DEMO_MODE ? 'none' : 'inline-block';
+    leadsView.style.display = 'block';
+    document.getElementById('demo-banner').style.display = DEMO_MODE ? 'block' : 'none';
+    loadLeads();
+  }
+
+  function showLoggedOut(){
+    loginCard.style.display = 'block';
+    signoutBtn.style.display = 'none';
+    leadsView.style.display = 'none';
+  }
+
+  loginForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    loginError.classList.remove('show');
+    loginSubmit.disabled = true;
+    loginSubmit.textContent = 'Signing in...';
+
+    fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({
+        email: loginEmail.value.trim(),
+        password: loginPassword.value
+      })
+    })
+    .then(function(res){ return res.json().then(function(body){ return { ok: res.ok, body: body }; }); })
+    .then(function(result){
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = 'Sign In';
+      if (!result.ok || !result.body.access_token) {
+        showLoginError('Wrong email or password.');
+        return;
+      }
+      setSession({ access_token: result.body.access_token });
+      loginPassword.value = '';
+      showLoggedIn();
+    })
+    .catch(function(){
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = 'Sign In';
+      showLoginError('Could not reach the login server. Check your connection and try again.');
+    });
+  });
+
+  signoutBtn.addEventListener('click', function(){
+    clearSession();
+    showLoggedOut();
+  });
+
+  refreshBtn.addEventListener('click', loadLeads);
+
+  function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g, function(ch){
+      return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch];
+    });
+  }
+
+  function formatDate(iso){
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' }) +
+      ' ' + d.toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function renderLeads(leads){
+    var loading = document.getElementById('loading-state');
+    var empty = document.getElementById('empty-state');
+    var tableWrap = document.getElementById('table-wrap');
+    var tbody = document.getElementById('leads-tbody');
+    var countEl = document.getElementById('leads-count');
+
+    loading.style.display = 'none';
+    countEl.textContent = leads.length + (leads.length === 1 ? ' opt-in' : ' opt-ins');
+
+    if (leads.length === 0) {
+      empty.style.display = 'block';
+      tableWrap.style.display = 'none';
+      return;
+    }
+
+    tbody.innerHTML = leads.map(function(lead){
+      return '<tr>' +
+        '<td class="date">' + escapeHtml(formatDate(lead.created_at)) + '</td>' +
+        '<td class="name">' + escapeHtml(lead.name || '') + '</td>' +
+        '<td>' + escapeHtml(lead.email || '') + '</td>' +
+        '<td>' + escapeHtml(lead.phone || '') + '</td>' +
+        '<td>' + escapeHtml(lead.source || '') + '</td>' +
+        '</tr>';
+    }).join('');
+    tableWrap.style.display = 'block';
+  }
+
+  function loadLeads(){
+    var loading = document.getElementById('loading-state');
+    var empty = document.getElementById('empty-state');
+    var errorState = document.getElementById('error-state');
+    var tableWrap = document.getElementById('table-wrap');
+
+    loading.style.display = 'block';
+    empty.style.display = 'none';
+    errorState.classList.remove('show');
+    tableWrap.style.display = 'none';
+
+    if (DEMO_MODE) {
+      setTimeout(function(){ renderLeads(DEMO_LEADS); }, 300);
+      return;
+    }
+
+    var session = getSession();
+    if (!session) { showLoggedOut(); return; }
+
+    fetch(SUPABASE_URL + '/rest/v1/leads?select=*&order=created_at.desc', {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + session.access_token
+      }
+    })
+    .then(function(res){
+      if (res.status === 401) {
+        clearSession();
+        showLoggedOut();
+        throw new Error('session-expired');
+      }
+      if (!res.ok) throw new Error('request-failed');
+      return res.json();
+    })
+    .then(renderLeads)
+    .catch(function(err){
+      loading.style.display = 'none';
+      if (err.message === 'session-expired') return;
+      errorState.textContent = 'Could not load leads. Try refreshing.';
+      errorState.classList.add('show');
+    });
+  }
+
+  if (DEMO_MODE || getSession()) showLoggedIn();
+  else showLoggedOut();
+})();
+</script>
+
+</body>
+</html>
