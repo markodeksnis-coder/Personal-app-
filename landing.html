@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The 90-Day Appointment Engine</title>
+<meta name="description" content="The exact outbound system used to book 30-60 qualified owner appointments in 90 days for local lead-gen and SMMA offers. Free PDF."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#09090b;
+    --panel:#111120;
+    --panel-2:#0f0f1e;
+    --border:#1e1e38;
+    --border-2:#252540;
+    --text:#fafafa;
+    --text-dim:#b8b8d8;
+    --text-mute:#6868a0;
+    --accent:#818cf8;
+    --accent-2:#22d3ee;
+    --danger:#f87171;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px;}
+  ::selection{background:var(--accent);color:#0a0a14;}
+
+  header.site{padding:22px 0;border-bottom:1px solid var(--border);}
+  .logo{font-weight:900;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--text);}
+  .logo span{color:var(--accent);}
+
+  .hero{padding:64px 0 40px;text-align:center;}
+  .eyebrow{
+    display:inline-block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--accent);background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);
+    padding:6px 14px;border-radius:999px;margin-bottom:22px;
+  }
+  h1{font-size:clamp(30px,5vw,48px);font-weight:900;letter-spacing:-.02em;line-height:1.12;color:#fff;}
+  h1 em{color:var(--accent);font-style:normal;}
+  .sub{max-width:620px;margin:20px auto 0;font-size:17px;color:var(--text-dim);}
+  .sub strong{color:#fff;font-weight:700;}
+
+  .proof-row{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin:34px 0 0;font-size:13px;color:var(--text-mute);font-weight:600;}
+  .proof-row span{display:flex;align-items:center;gap:6px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-2);}
+
+  .optin{
+    max-width:440px;margin:40px auto 0;background:var(--panel);
+    border:1px solid var(--border-2);border-radius:16px;padding:26px;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .optin h2{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;}
+  .optin p.hint{font-size:13px;color:var(--text-mute);margin-bottom:18px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:11px;font-weight:700;color:var(--text-mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+  .field input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border-2);
+    background:#0a0a18;color:#fff;font-family:'Inter',sans-serif;font-size:14px;outline:none;
+    transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--accent);}
+  .field input::placeholder{color:#3f3f5c;}
+  .field.error input{border-color:var(--danger);}
+  .field-err{font-size:12px;color:var(--danger);margin-top:6px;display:none;}
+  .field.error .field-err{display:block;}
+
+  .btn{
+    width:100%;padding:14px 18px;border-radius:10px;border:none;
+    background:var(--accent);color:#0a0a14;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;
+    cursor:pointer;transition:opacity .15s, transform .1s;
+  }
+  .btn:hover{opacity:.9;}
+  .btn:active{transform:translateY(1px);}
+  .btn:disabled{opacity:.6;cursor:default;}
+  .btn.secondary{background:transparent;border:1px solid var(--border-2);color:#fff;}
+
+  .optin .fine{font-size:11.5px;color:var(--text-mute);text-align:center;margin-top:12px;}
+  .status-msg{font-size:13px;text-align:center;margin-top:12px;display:none;}
+  .status-msg.show{display:block;}
+  .status-msg.ok{color:#4ade80;}
+  .status-msg.bad{color:var(--danger);}
+
+  section{padding:56px 0;border-top:1px solid var(--border);}
+  .kicker{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  h2.section-title{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.01em;margin-bottom:14px;}
+  p.lead{font-size:15.5px;color:var(--text-dim);max-width:640px;}
+
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .card .num{font-size:11px;font-weight:800;color:var(--text-mute);letter-spacing:.1em;margin-bottom:10px;}
+  .card h3{font-size:15px;font-weight:700;color:#fff;margin-bottom:8px;}
+  .card p{font-size:13.5px;color:var(--text-dim);}
+
+  .math{background:var(--panel-2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:28px;}
+  .math ul{list-style:none;}
+  .math li{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .math li:last-child{border-bottom:none;font-weight:800;color:#fff;}
+  .math li span:first-child{color:var(--text-dim);}
+  .math li span:last-child{color:var(--accent-2);font-weight:700;}
+
+  .fit{background:var(--panel);border:1px solid var(--border-2);border-radius:16px;padding:28px;}
+  .fit h2.section-title{margin-bottom:18px;}
+  .fit ul{list-style:none;margin:0 0 24px;}
+  .fit li{display:flex;gap:12px;padding:10px 0;font-size:14.5px;color:var(--text-dim);border-bottom:1px solid var(--border);}
+  .fit li:last-child{border-bottom:none;}
+  .fit li::before{content:'✓';color:var(--accent-2);font-weight:800;flex-shrink:0;}
+  .risk{
+    background:#0a0a18;border:1px solid var(--border-2);border-radius:12px;padding:18px 20px;
+    font-size:14px;color:var(--text-dim);margin-bottom:22px;
+  }
+  .risk strong{color:#fff;}
+
+  footer.site{padding:32px 0 60px;text-align:center;color:var(--text-mute);font-size:12.5px;}
+
+  @media (max-width:700px){
+    .grid-3{grid-template-columns:1fr;}
+    .proof-row{gap:14px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="logo">LEY<span>VIX</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero" style="border-top:none;padding-top:56px;">
+    <span class="eyebrow">Free operator PDF</span>
+    <h1>The <em>90-Day Appointment Engine</em><br/>for local lead-gen &amp; SMMA owners</h1>
+    <p class="sub">The exact outbound system I run to book <strong>30-60 qualified owner appointments in 90 days</strong>. No theory. Just the sequences, scripts, and math, written down so you can run it this week.</p>
+
+    <div class="proof-row">
+      <span><span class="dot"></span>Built for local B2B offers</span>
+      <span><span class="dot"></span>No paid ads required</span>
+      <span><span class="dot"></span>Setter-ready scripts included</span>
+    </div>
+
+    <div class="optin" id="optin-card">
+      <h2>Get the PDF, free</h2>
+      <p class="hint">Enter your name and email. I'll send it straight to your inbox.</p>
+      <form id="optin-form" novalidate>
+        <div class="field" id="field-name">
+          <label for="name">First name</label>
+          <input type="text" id="name" name="name" placeholder="Jane" autocomplete="given-name"/>
+          <div class="field-err">Enter your first name.</div>
+        </div>
+        <div class="field" id="field-email">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="jane@youragency.com" autocomplete="email"/>
+          <div class="field-err">Enter a valid email address.</div>
+        </div>
+        <button type="submit" class="btn" id="optin-submit">Send Me The PDF</button>
+        <p class="fine">No spam. One useful email, then the system. Unsubscribe anytime.</p>
+        <p class="status-msg" id="optin-status"></p>
+      </form>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">What's inside</div>
+    <h2 class="section-title">Three parts. Nothing you have to guess at.</h2>
+    <p class="lead">This is the same breakdown I use with my own clients before we touch a single list or script.</p>
+    <div class="grid-3">
+      <div class="card">
+        <div class="num">01</div>
+        <h3>The qualified appointment definition</h3>
+        <p>What actually counts as a booked, qualified owner call, so you stop celebrating meetings that were never going to close.</p>
+      </div>
+      <div class="card">
+        <div class="num">02</div>
+        <h3>The volume math</h3>
+        <p>How many touches, replies, and conversations it actually takes to land 30-60 appointments in 90 days, by channel.</p>
+      </div>
+      <div class="card">
+        <div class="num">03</div>
+        <h3>The daily outbound system</h3>
+        <p>The exact cadence, scripts, and follow-up sequence a solo owner or a single setter can run without burning out.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="kicker">The math</div>
+    <h2 class="section-title">This is not a vibes-based plan.</h2>
+    <p class="lead">Every number in the PDF traces back to this table. If your numbers are lower, the PDF shows you which stage to fix first.</p>
+    <div class="math">
+      <ul>
+        <li><span>Daily outbound touches (call + SMS + DM)</span><span>60-100</span></li>
+        <li><span>Reply rate on a cold, well-targeted list</span><span>8-15%</span></li>
+        <li><span>Qualified appointment rate on replies</span><span>20-30%</span></li>
+        <li><span>Appointments booked in 90 days</span><span>30-60</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="fit">
+      <div class="kicker">Is this you?</div>
+      <h2 class="section-title">This is a working session, not a generic discovery call. It is best for:</h2>
+      <ul>
+        <li>Local lead-gen or SMMA owners doing at least a few thousand per month with real clients.</li>
+        <li>Owners who can carve out 2-3 hours per day for outbound or have a setter who can.</li>
+        <li>People who want a proven outbound system built with them, not more random tactics.</li>
+      </ul>
+      <div class="risk">
+        <strong>The deal:</strong> If I do not see a clear path for you to get 30-60 qualified owner appointments in 90 days, I will tell you and point you in the right direction. No pitch, no hard feelings.
+      </div>
+      <a href="https://calendly.com/leyvix/50k-month-plan-call" class="btn" id="book-call-btn" target="_blank" rel="noopener">Book My 50k/Month Plan Call</a>
+    </div>
+  </section>
+</div>
+
+<footer class="site">
+  <div class="wrap">Leyvix &middot; Built by an operator, for operators.</div>
+</footer>
+
+<script>
+(function(){
+  // Replace with your ESP/CRM webhook endpoint (ActiveCampaign, GoHighLevel, ConvertKit, etc.)
+  var WEBHOOK_URL = "https://your-esp-or-crm.example.com/webhook/90-day-engine-optin";
+  var LEAD_TAG = "lead:90-day-engine";
+
+  var form = document.getElementById('optin-form');
+  var nameField = document.getElementById('name');
+  var emailField = document.getElementById('email');
+  var submitBtn = document.getElementById('optin-submit');
+  var statusMsg = document.getElementById('optin-status');
+
+  function setError(fieldId, hasError){
+    var el = document.getElementById(fieldId);
+    if (hasError) el.classList.add('error');
+    else el.classList.remove('error');
+  }
+
+  function isValidEmail(value){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
+  function showStatus(text, kind){
+    statusMsg.textContent = text;
+    statusMsg.className = 'status-msg show ' + kind;
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+
+    var name = nameField.value.trim();
+    var email = emailField.value.trim();
+    var nameOk = name.length > 0;
+    var emailOk = isValidEmail(email);
+
+    setError('field-name', !nameOk);
+    setError('field-email', !emailOk);
+
+    if (!nameOk || !emailOk) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    var payload = {
+      name: name,
+      email: email,
+      tag: LEAD_TAG,
+      source: 'landing.html',
+      timestamp: new Date().toISOString()
+    };
+
+    fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(){
+      redirectToThankYou(name, email);
+    })
+    .catch(function(){
+      // Even if the webhook call fails client-side (e.g. CORS on a placeholder URL),
+      // don't block the visitor from reaching the PDF and next steps.
+      redirectToThankYou(name, email);
+    });
+  });
+
+  function redirectToThankYou(name, email){
+    var params = new URLSearchParams({ name: name, email: email });
+    window.location.href = 'thankyou.html?' + params.toString();
+  }
+})();
+</script>
+
+</body>
+</html>

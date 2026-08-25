@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Your PDF is on the way</title>
+<meta name="description" content="Your 90-Day Appointment Engine PDF is on the way. Here's what to do next."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#09090b;
+    --panel:#111120;
+    --panel-2:#0f0f1e;
+    --border:#1e1e38;
+    --border-2:#252540;
+    --text:#fafafa;
+    --text-dim:#b8b8d8;
+    --text-mute:#6868a0;
+    --accent:#818cf8;
+    --accent-2:#22d3ee;
+    --danger:#f87171;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px;}
+
+  header.site{padding:22px 0;border-bottom:1px solid var(--border);}
+  .logo{font-weight:900;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--text);}
+  .logo span{color:var(--accent);}
+
+  .hero{padding:56px 0 20px;text-align:center;}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:#4ade80;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);
+    padding:6px 14px;border-radius:999px;margin-bottom:22px;
+  }
+  .badge::before{content:'✓';font-weight:900;}
+  h1{font-size:clamp(26px,4.5vw,38px);font-weight:900;letter-spacing:-.02em;color:#fff;}
+  h1 span.name{color:var(--accent);}
+  p.sub{max-width:560px;margin:16px auto 0;font-size:15.5px;color:var(--text-dim);}
+
+  .steps{max-width:620px;margin:40px auto 0;text-align:left;}
+  .step{
+    display:flex;gap:16px;background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:18px 20px;margin-bottom:12px;
+  }
+  .step-num{
+    flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(129,140,248,.12);
+    border:1px solid rgba(129,140,248,.3);color:var(--accent);font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .step h3{font-size:14.5px;font-weight:700;color:#fff;margin-bottom:4px;}
+  .step p{font-size:13.5px;color:var(--text-dim);}
+  .step a.link-btn{
+    display:inline-block;margin-top:8px;font-size:13px;font-weight:700;color:var(--accent-2);
+    text-decoration:underline;text-underline-offset:3px;
+  }
+
+  section{padding:48px 0;border-top:1px solid var(--border);}
+  .kicker{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  h2.section-title{font-size:24px;font-weight:900;color:#fff;letter-spacing:-.01em;margin-bottom:16px;}
+
+  .fit{background:var(--panel);border:1px solid var(--border-2);border-radius:16px;padding:28px;max-width:640px;margin:0 auto;}
+  .fit ul{list-style:none;margin:0 0 24px;}
+  .fit li{display:flex;gap:12px;padding:10px 0;font-size:14.5px;color:var(--text-dim);border-bottom:1px solid var(--border);}
+  .fit li:last-child{border-bottom:none;}
+  .fit li::before{content:'✓';color:var(--accent-2);font-weight:800;flex-shrink:0;}
+
+  .risk{
+    background:#0a0a18;border:1px solid var(--border-2);border-radius:12px;padding:18px 20px;
+    font-size:14px;color:var(--text-dim);margin-bottom:22px;
+  }
+  .risk strong{color:#fff;}
+
+  .btn{
+    display:block;width:100%;text-align:center;padding:16px 18px;border-radius:10px;border:none;
+    background:var(--accent);color:#0a0a14;font-family:'Inter',sans-serif;font-size:15px;font-weight:800;
+    cursor:pointer;transition:opacity .15s, transform .1s;text-decoration:none;
+  }
+  .btn:hover{opacity:.9;}
+  .btn:active{transform:translateY(1px);}
+
+  footer.site{padding:32px 0 60px;text-align:center;color:var(--text-mute);font-size:12.5px;}
+
+  @media (max-width:600px){
+    .step{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="logo">LEY<span>VIX</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero" style="border-top:none;">
+    <span class="badge">You're in</span>
+    <h1>You're in, <span class="name" id="ty-name">there</span>. Your 90-Day Appointment Engine PDF is on the way.</h1>
+    <p class="sub">Check your inbox in the next few minutes. While you wait, here's exactly what to do next.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Open the PDF</h3>
+          <p>Start with pages 1-3: the qualified appointment definition and the volume math. Everything else in the system builds on those two things.</p>
+          <a class="link-btn" href="https://your-domain.example.com/downloads/90-day-appointment-engine.pdf" target="_blank" rel="noopener">Open the PDF &rarr;</a>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Join the free Skool community</h3>
+          <p>Post your offer and niche inside. I review these and give direct feedback on where your outbound is likely to break.</p>
+          <a class="link-btn" href="https://www.skool.com/leyvix" target="_blank" rel="noopener">Join Skool &rarr;</a>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Decide if you want it built with you</h3>
+          <p>If you'd rather not build this alone, the 50k/Month Plan Call below is where we map your specific numbers and fix whatever's broken in your outbound.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="fit">
+      <div class="kicker">Is this you?</div>
+      <h2 class="section-title">This is a working session, not a generic discovery call. It is best for:</h2>
+      <ul>
+        <li>Local lead-gen or SMMA owners doing at least a few thousand per month with real clients.</li>
+        <li>Owners who can carve out 2-3 hours per day for outbound or have a setter who can.</li>
+        <li>People who want a proven outbound system built with them, not more random tactics.</li>
+      </ul>
+      <div class="risk">
+        <strong>The deal:</strong> If I do not see a clear path for you to get 30-60 qualified owner appointments in 90 days, I will tell you and point you in the right direction. No pitch, no hard feelings.
+      </div>
+      <a href="https://calendly.com/leyvix/50k-month-plan-call" class="btn" id="book-call-btn" target="_blank" rel="noopener">Book My 50k/Month Plan Call</a>
+    </div>
+  </section>
+</div>
+
+<footer class="site">
+  <div class="wrap">Leyvix &middot; Built by an operator, for operators.</div>
+</footer>
+
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var name = (params.get('name') || '').trim();
+  if (name) {
+    var safeName = name.replace(/[<>&"]/g, '');
+    if (safeName) {
+      document.getElementById('ty-name').textContent = safeName;
+    }
+  }
+})();
+</script>
+
+</body>
+</html>
