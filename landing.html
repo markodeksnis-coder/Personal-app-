@@ -151,7 +151,7 @@
 
     <div class="optin" id="optin-card">
       <h2>Get the PDF, free</h2>
-      <p class="hint">Enter your name and email. I'll send it straight to your inbox.</p>
+      <p class="hint">Enter your name, email, and phone. I'll send it straight to your inbox.</p>
       <form id="optin-form" novalidate>
         <div class="field" id="field-name">
           <label for="name">First name</label>
@@ -162,6 +162,11 @@
           <label for="email">Email</label>
           <input type="email" id="email" name="email" placeholder="jane@youragency.com" autocomplete="email"/>
           <div class="field-err">Enter a valid email address.</div>
+        </div>
+        <div class="field" id="field-phone">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" autocomplete="tel"/>
+          <div class="field-err">Enter a valid phone number.</div>
         </div>
         <button type="submit" class="btn" id="optin-submit">Send Me The PDF</button>
         <p class="fine">One useful email, the 90-Day Engine PDF, and an invite to the free Appointment Kings community. Unsubscribe anytime.</p>
@@ -231,13 +236,23 @@
 
 <script>
 (function(){
-  // Replace with your ESP/CRM webhook endpoint (ActiveCampaign, GoHighLevel, ConvertKit, etc.)
+  // ---- Supabase project settings -------------------------------------
+  // Create a free project at supabase.com, run the SQL in BACKEND_SETUP.md,
+  // then paste your project's URL and anon public key below. Both are safe
+  // to expose client-side: Row Level Security (see BACKEND_SETUP.md) only
+  // allows this key to INSERT new leads, never read or change existing ones.
+  var SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co";
+  var SUPABASE_ANON_KEY = "YOUR-SUPABASE-ANON-PUBLIC-KEY";
+
+  // Optional: if you also run an ESP/CRM automation (ActiveCampaign, GHL, etc.)
+  // off this opt-in, put its webhook URL here. Leave as-is to skip it.
   var WEBHOOK_URL = "https://your-esp-or-crm.example.com/webhook/90-day-engine-optin";
   var LEAD_TAG = "lead:90-day-engine";
 
   var form = document.getElementById('optin-form');
   var nameField = document.getElementById('name');
   var emailField = document.getElementById('email');
+  var phoneField = document.getElementById('phone');
   var submitBtn = document.getElementById('optin-submit');
   var statusMsg = document.getElementById('optin-status');
 
@@ -251,6 +266,10 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   }
 
+  function isValidPhone(value){
+    return value.replace(/\D/g, '').length >= 7;
+  }
+
   function showStatus(text, kind){
     statusMsg.textContent = text;
     statusMsg.className = 'status-msg show ' + kind;
@@ -261,42 +280,58 @@
 
     var name = nameField.value.trim();
     var email = emailField.value.trim();
+    var phone = phoneField.value.trim();
     var nameOk = name.length > 0;
     var emailOk = isValidEmail(email);
+    var phoneOk = isValidPhone(phone);
 
     setError('field-name', !nameOk);
     setError('field-email', !emailOk);
+    setError('field-phone', !phoneOk);
 
-    if (!nameOk || !emailOk) return;
+    if (!nameOk || !emailOk || !phoneOk) return;
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Sending...';
 
-    var payload = {
+    var lead = {
       name: name,
       email: email,
+      phone: phone,
       tag: LEAD_TAG,
-      source: 'landing.html',
-      timestamp: new Date().toISOString()
+      source: 'landing.html'
     };
 
-    fetch(WEBHOOK_URL, {
+    // Store the opt-in in your private Supabase database.
+    var storeLead = fetch(SUPABASE_URL + '/rest/v1/leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(lead)
+    }).catch(function(){
+      // Don't block the visitor if the database call fails client-side.
+    });
+
+    // Fire the optional ESP/CRM webhook in parallel, if configured.
+    var notifyEsp = fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function(){
-      redirectToThankYou(name, email);
-    })
-    .catch(function(){
-      // Even if the webhook call fails client-side (e.g. CORS on a placeholder URL),
-      // don't block the visitor from reaching the PDF and next steps.
-      redirectToThankYou(name, email);
+      body: JSON.stringify(lead)
+    }).catch(function(){
+      // Placeholder webhook URLs are expected to fail until replaced.
+    });
+
+    Promise.all([storeLead, notifyEsp]).then(function(){
+      redirectToThankYou(name);
     });
   });
 
-  function redirectToThankYou(name, email){
-    var params = new URLSearchParams({ name: name, email: email });
+  function redirectToThankYou(name){
+    var params = new URLSearchParams({ name: name });
     window.location.href = 'thankyou.html?' + params.toString();
   }
 })();
